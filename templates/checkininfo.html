@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking and Check-in</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='baggage.css') }}">
+
+</head>
+
+<!-- BODY -->
+    <body class="body">
+        <!-- NAVIGATIONS -->
+        <div class="nav">
+            <div class="logo"><h1>SkyLine</h1></div>
+
+            <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"></a></li>
+                <li class="nav-buttons"><a href="#">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3" style="width: 100%;"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                        
+                    </ul>
+                </li>
+
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+
+                <div class="nav-auth">
+                    {% if session['user_id'] %}
+                        <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                            <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                                Welcome, {{ session['first_name'] }}!
+                            </span>
+
+                            <!-- For clickable avatar to booked flights page -->
+                            <a href="{{ url_for('bookedflights') }}" style="text-decoration: none;">
+                            <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            </a>
+
+                            <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                        </div>
+                    {% else %}
+                        <button class="log-in">
+                            <a style="font-family: 'Bookman Old Style';" href="{{ url_for('login') }}">Log In</a>
+                        </button>
+                    {% endif %}
+                </div>
+        </div>
+       
+
+        <!-- BODY SECTION -->
+         <div class="headertext">            
+            <span style="text-align: center; font-size: 30px;"><h1>Booking and Check-in</h1></span>
+         </div>
+
+            
+        <div class="bagbody">
+            <div class="leftbag">
+                <h2 >Select Option</h2>
+                <a href="{{ url_for('bookinginfo') }}#bookguide">Booking Guidelines</a><br>
+                <hr>
+                <a href="{{ url_for('bookinginfo') }}#checkboardguide">Check-in and Boarding Guidelines</a><br>
+                <hr>
+                <a href="{{ url_for('bookinginfo') }}#onlinecheck">Check-in Options: Web / Mobile</a><br>
+                <hr>
+                <a href="{{ url_for('bookinginfo') }}#AirportCheck">Check-in Options: Airport</a><br>
+                <hr>
+            </div>
+            <div class="rightbag">
+                <div class="info" id="bookguide">
+                    <h2>Booking Guidelines</h2>
+                    <p>Booking a flight less than 59 minutes before its scheduled time of departure? Internet bookings will no longer be allowed during this period, and bookings can only be done through our sales offices. You may contact us to check the availability of your preferred flight.</p>
+                </div>
+
+                <div class="info" id="checkboardguide">
+                    <h2>Check-In and Boarding Guidelines</h2>
+                    <ul>
+                        <li>Check in online before going to the airport to avoid queuing. Read more about fast check-in options here.</li>
+                        <li>Check-in counters for domestic flights strictly close 45 mins before the scheduled time of departure. Meanwhile, check-in counters for international flights close one (1) hour before the scheduled time of departure.</li>
+                        <li>Wear a face mask.</li>
+                    </ul>
+                </div>
+
+                <div class="info" id="onlinecheck">
+                    <h2>Online Check-in</h2>
+                    <b><p>Online Check-in</p></b>
+                    <ul>
+                        <li>For international flights - available from 2 days up to 2 hours before your flight</li>
+                        <li>For domestic flights - available from 2 days up to 1 hour before your flight</li>
+                    </ul>
+                    <b><p>Online Check-in is not allowed for:</p></b>
+                    <ul>
+                        <li>Unaccompanied Minors</li>
+                        <li>Guests who must submit a medical certificate</li>
+                        <li>Guests requiring special assistance and bag service</li>
+                        <li>Guests on group bookings with more than 20 passengers</li>
+                        <li>Guests with outstanding balance</li>
+                        <li>Guests with tax exemptions (i.e., OFWs)</li>
+                    </ul>
+                </div>
+
+                <div class="box">
+                    <b><p>Take note!</p></b>
+                    <ul>
+                        <li>Go to the Bag Drop Counter before counter closure to check-in your bags. In certain cases, guests flying international may have to get their travel documents verified at the airport counters.</li>
+                        <li>Cebu Pacific web and mobile boarding passes are accepted in all airports across the Philippines for domestic travel. On international flights, they are accepted when departing from these airports: Bangkok, Denpasar, Fukuoka, Hong Kong, Jakarta, Kota Kinabalu, Kuala Lumpur, Nagoya, Osaka-Kansai, Singapore, Sydney, Taipei, Tokyo-Narita and Dubai.</li>
+                        <li>Be at your assigned Boarding Gate at least 45 minutes before the flight.</li>
+                        <li>Seats are automatically assigned, but you can change and choose your seat for a fee.</li>
+                        <li>Have last-minute changes? You can still manage your booking even after checking in.</li>
+                    </ul>                    
+                </div>
+
+                <div class="info" id="AirportCheck">
+                    <h2>Airport Check-in</h2>
+                    <img src="static/images/checkingirl.jpg" alt="">
+                    <b><p>Check-In Kiosk</p></b>
+                    <p>Available as early as 8 hours before your flight. You will need your booking reference number to use the check-in kiosk.
+                    You can use the kiosk to print your bag tag. Here's how:</p>
+                    <img src="static/images/Kioskhowto.png" alt="">                    
+                </div>
+
+                <div class="box">
+                    <b><p>Take note!</p></b>
+                    <ul>
+                        <li>Go to the Bag Drop Counter before counter closure to check-in your bags. If you're flying internationally, you have to get your travel documents verified in the check-in counter first.</li>
+                        <li>Be at your assigned Boarding Gate at least 45 minutes before the flight</li>
+                        <li>Seats are automatically assigned, but you can change and choose your seat for a fee</li>
+                    </ul>                  
+                </div>
+
+            </div>
+        </div>
+        <!-- FOOTER SECTION -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo">
+            <strong>AV</strong>
+        </div>
+        
+        <nav class="footer-nav">
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+        <h2>Alta Volare! &#9992;</h2>
+        <p>&copy; 2026 All Rights Reserved.</p>
+    </div>
+</footer>
+    </body>
+</html>

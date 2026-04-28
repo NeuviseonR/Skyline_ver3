@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baggage Information</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='baggage.css') }}">
+
+</head>
+
+<!-- BODY -->
+    <body class="body">
+        <!-- NAVIGATIONS -->
+        <div class="nav">
+            <div class="logo"><h1>SkyLine</h1></div>
+
+            <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('popular') }}">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3"  style="width: 100%;"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                                               
+                    </ul>
+                </li>
+
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+            <div class="nav-auth">
+                    {% if session['user_id'] %}
+                        <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                            <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                                Welcome, {{ session['first_name'] }}!
+                            </span>
+
+                            <!-- For clickable avatar to booked flights page -->
+                            <a href="{{ url_for('bookedflights') }}" style="text-decoration: none;">
+                            <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            </a>
+                        
+                            <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                        </div>
+                    {% else %}
+                        <button class="log-in">
+                            <a style="font-family: 'Bookman Old Style';" href="{{ url_for('login') }}">Log In</a>
+                        </button>
+                    {% endif %}
+                </div>
+        </div>
+       
+
+        <!-- BODY SECTION -->
+         <div class="headertext">            
+            <span style="text-align: center; font-size: 30px;"><h1>Baggage Information</h1></span>
+         </div>
+
+            
+        <div class="bagbody">
+            <div class="leftbag">
+                <h2 >Baggage Information</h2>
+                <a href="{{ url_for('baggage') }}#carry">Hand Carry Baggage</a><br>
+                <hr>
+                <a href="{{ url_for('baggage') }}#checked">Checked Baggage</a><br>
+                <hr>
+                <a href="{{ url_for('baggage') }}#special">Special Baggage</a><br>
+                <hr>
+                <a href="{{ url_for('baggage') }}#dangerous">Dangerous Goods</a>
+            </div>
+            <div class="rightbag">
+                <div class="info" id="carry">
+                    <h2>Hand Carry Baggage</h2>
+                    <p>Your hand carry must not exceed:</p>
+                    <img src="static/images/HandCarry.jpg" alt="">
+                    <p>Every passenger is allowed one (1) carry-on baggage inside the cabin, with a maximum weight of seven (7) kilograms and dimension of up to 56cm x 36cm x 23cm. This includes most wheeled cabin bags and backpacks. The carry-on baggage must fit inside the overhead bin and must be stowed by yourself.</p>
+                    <p>Only the following items shall be considered as exceptions and shall be allowed on top of the one (1) piece carry-on baggage:</p>
+                    <p>1. Extra bag for parents/guardians if travelling with children.</p>
+                    <p>2. Medical-related needs of passengers such as but not limited to walking stick, crutches, prosthetic devices and personal wheelchair.</p>
+                    <p>3. Items purchased inside the airport. Proof of receipt is required to be presented to the counter agent/gate boarding agent.</p>
+                    <p>4. Gadget or food item that cannot be accepted for check-in.</p>
+                    <p>5. Small bag that can fit under the seat.</p>
+                    <p>Carry-on/hand carry baggage allowance including any exception, should be a maximum of two (2) pieces only and with total combined weight of seven (7)kg or less.</p>
+                </div>
+                <div class="info" id="checked">
+                    <h2>Checked Baggage</h2>
+                    <img src="static/images/checkedbaggage.jpg" alt="">
+                    <p>Take Note!</p>
+                    <p>Passengers can purchase up to three (3) pieces of 20kg baggage allowance.</p>
+                    <p>Passengers may also upgrade or add weight to each of the purchased 20kg baggage allowance in tiers of 4kg, 8kg or 12kg.</p>
+                    <p>CEB Baggage Allowance is available at the time of booking and during Manage Booking up to two (2) hours before the scheduled time of departure.</p>
+                    <p>Passengers who don’t have baggage allowance can avail one (1) piece Airport Baggage up to one (1) hour before departure.</p>
+                    <p>Any excess in piece, weight, and size (baggage that exceeds 39 inches) are subject to corresponding Airport fees.</p>
+                    <p>Baby strollers and walking canes can be checked in for free provided that guest who requires the use of the stroller or cane is part of the traveling party.</p>
+                    <p>Dangerous items are not allowed for check-in or hand carry. Learn more about <a href="{{ url_for('baggage') }}#dangerous" style="color: rgb(47, 116, 121);">Dangerous Goods</a>.</p>
+                </div>
+                <div class="info" id="special">
+                    <h2>Special Baggage</h2>
+                    <p>Traveling with items that are larger than the usual? We accept special baggage for check in such as sports equipment, surfboards, musical instruments, oversized bags, etc., for a fee.</p>
+                        <b><p>Sports Equipment</p></b>
+                    <p>Take your gear with you wherever you go! You can bring your sports equipment as checked baggage provided it is packed properly and securely.</p>
+                        <b><p>Surfboard</p></b>
+                    <p>Headed to the beach for some vitamin sea? We accept various types of boards for check-in as long as it is packed properly in a case.</p>
+                        <b><p>Musical Instruments or Religious Items</p></b>
+                    <p>Musical instruments and religious items are allowed on board provided it meets cabin dimensions of up to 56cm x 36cm x 23cm and has a maximum weight of seven (7) kilos. This will be part of your allowance of hand carry baggage, which is just one (1) bag per passenger. If your item exceeds these dimensions and the piece and weight restriction allowed, you would need to purchase an extra seat for your item at the airport or purchase musical instrument under Special Baggage for the item to be checked in.</p>
+                        <b><p>Oversized Baggage</p></b>
+                    <p>Does your bag exceed 39 inches on any one side and/or require special handling? This will still be allowed for check-in as long as you purchase an oversized baggage during booking. Purchase in advance to avoid higher fees at the Airport.</p>
+                        <b><p>Firearms, Ammunition and Other Weapons</p></b>
+                    <p>We allow carriage of firearms as checked baggage to all domestic flights only, for a fee. Passengers bringing their personal firearms must be ready to present the following documents at any time that it is required by authorities.</p>
+                    <ul> 
+                        <li>Valid ID (Government issued IDs, Service/Agency ID)</li>
+                        <li>Valid Firearms License</li>
+                        <li>Valid Permit to Carry Firearms Outside of the Residence</li>
+                        <li>Valid Permit to Transport Firearms and Ammunition (for firearms not covered by the former and for Gun Club Members)</li>
+                    </ul>
+                    <p>Uniformed personnel and active members of law-enforcement agencies are exempted from paying the fee as long as they present a Valid Mission Order.</p>
+                </div>
+                <div class="info" id="dangerous">
+                    <h2>Dangerous Goods</h2>
+                    
+                    <p>Dangerous goods are items or substances that may endanger the society of the aircraft or guests onboard. Please ensure that you do not pack items specified in this list in your hand carry or checked baggage.</p>
+                    <img src="static/images/DangerousGoods.png" alt="">
+                    <p>The following items are prohibited in your baggage whether it is checked in or not:</p>
+                    <ul>
+                        <li> Explosives, flammable or non-inflammable gas (such as aerosol paints, butane gas, lighter refills)</li>
+                        <li> Refrigerated gas (such as filled aqualung cylinders, liquid nitrogen)</li>
+                        <li> Flammable liquids (such as paints, thinners, solvents)</li>
+                        <li> Flammable solids (such as matches, fire lighters)</li>
+                        <li> Organic peroxides (such as resins)</li>
+                        <li> Poisons</li>
+                        <li> Infective substances (such as viruses, bacteria)</li>
+                        <li> Radioactive material (such as radium)</li>
+                        <li> Corrosive materials (such as acid, alkali, mercury, thermometer)</li>
+                        <li> Magnetic substances, oxidizing materials (such as bleaches)</li>
+                        <li> Weapons such as antique firearms, swords, knives, and similar items*. Such items may only be allowed in checked baggage at our absolute discretion for very special reasons.</li>
+                    </ul>
+                    <i><p>*For those travelling to/from Hong Kong, please note that stun guns, bullets, extendible batons, and knuckledusters are considered as arms in Hong Kong and therefore are prohibited.</p></i>
+                </div>
+            </div>
+        </div>
+        <!-- FOOTER SECTION -->
+
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo">
+            <strong>AV</strong>
+        </div>
+        
+        <nav class="footer-nav">
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+        <h2>Alta Volare! &#9992;</h2>
+        <p>&copy; 2026 All Rights Reserved.</p>
+    </div>
+</footer>        
+    </body>
+</html>

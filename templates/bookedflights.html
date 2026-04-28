@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyLine | My Tickets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .body {background-image: url(static/images/booking.webp); background-size: cover;}
+        .ticket-container { max-width: 900px; margin: 20px auto; display: flex; flex-direction: column; gap: 30px; }
+        .ticket-card { display: flex; background: #eaf8ef; border-radius: 25px; overflow: hidden; color: #000; font-family: sans-serif; min-height: 220px; box-shadow: 3px 3px 10px rgb(0, 60, 78); }
+        .ticket-left { flex: 3; padding: 20px; position: relative; border-right: 4px dashed #a7a7a7; }
+        .ticket-right { flex: 1; background: #b8d8d8; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative; }
+        
+        /* Decorative punch hole */
+        .ticket-right::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 25px; height: 25px; background: #fff; border-radius: 50%; box-shadow: inset 3px 3px 5px rgba(1, 1, 59, 0.589);}
+
+        .flight-path { display: flex; align-items: center; gap: 15px; margin: 10px 0; }
+        .line { flex-grow: 1; height: 2px; background: #d49f91; position: relative; }
+        .class-badge { background: #7fa7aa; color: white; padding: 5px 15px; border-radius: 10px; font-size: 14px; margin-right: 5px; border: none; }
+        .select-btn { background: #6b9a9d; color: white; padding: 10px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .trip-tag { position: absolute; top: 10px; right: 20px; font-size: 12px; font-weight: bold; }
+        .booking-wrapper {min-height: 50vh; background-color: rgba(255, 255, 255, 0.507); border-radius: 25px; display: flex; max-width: 1200px; margin: 50px auto; gap: 20px; padding: 20px;}
+        .ticket-container { flex: 3; margin-top: 0; }
+    </style>
+</head>
+
+<body class="body">
+    <div class="nav">
+        <div class="logo"><h1>SkyLine</h1></div>
+        <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('popular') }}">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                        
+                    </ul>
+                </li>
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+            <div class="nav-auth">
+                {% if session['user_id'] %}
+                    <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                        <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                            Welcome, {{ session['first_name'] }}!
+                        </span>
+                        <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                        </div>
+                        <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                    </div>
+                {% else %}
+                    <button class="log-in"><a href="{{ url_for('login') }}">Log In</a></button>
+                {% endif %} 
+            </div>
+    </div>
+
+<div class="booking-wrapper">
+        <div class="ticket-container">
+            <h2 style="font-family: 'Bookman Old Style'; margin-bottom: 20px; text-align: center;">My Purchased Tickets</h2>
+            
+                    {% for ticket in purchased_tickets %}
+    <div class="ticket-card" style="{% if 'Delayed' in ticket.flight.status %} background: #fff9f0; {% elif ticket.flight.status == 'REFUNDED' %} background: #fff0f0; opacity: 0.9; {% endif %}">
+        <div class="ticket-left">
+            <h2>SkyLine</h2>
+            <span class="trip-tag">BOARDING PASS</span>
+
+            <div class="flight-path">
+                <div style="text-align:center">
+                    {% if "Delayed" in ticket.flight.status %}
+                        <strong style="text-decoration: line-through; color: #777; font-size: 0.8rem;">{{ ticket.flight.dep_time }}</strong><br>
+                        <strong style="color: #d35400;">{{ ticket.flight.status.split(': ')[1] }}</strong><br>
+                    {% else %}
+                        <strong>{{ ticket.flight.dep_time }}</strong><br>
+                    {% endif %}
+                    <small>{{ ticket.flight.from_city }}</small>
+                </div>
+
+                <div class="line"></div>
+                <div style="text-align:center">&#9992;</div>
+                <div class="line"></div>
+
+                <div style="text-align:center">
+                    <strong>{{ ticket.flight.to_city }}</strong><br>
+                    <small>{{ ticket.flight.to_country }}</small>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <small style="text-transform: uppercase; font-size: 10px; color: #666;">Passenger</small><br>
+                    <strong>{{ ticket.first_name }} {{ ticket.last_name }}</strong>
+                </div>
+                <div>
+                    <small style="text-transform: uppercase; font-size: 10px; color: #666;">Seat</small><br>
+                    <strong>{{ ticket.seat_number }}</strong>
+                </div>
+            </div>
+            
+            <p style="margin-top: 15px; font-size: 13px;">
+                Date: {{ ticket.flight.dep_date }} | Class: {{ ticket.tier|capitalize }}
+                {% if ticket.flight.status == "REFUNDED" %}
+                    <span style="color: #e74c3c; font-weight: bold; margin-left: 10px;">(FLIGHT CANCELLED)</span>
+                {% endif %}
+            </p>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                {% if ticket.flight.status != "REFUNDED" %}
+                    <a href="{{ url_for('edit_ticket', booking_id=ticket.id) }}" 
+                    style="background: #6b9a9d; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 11px;">
+                    EDIT DETAILS
+                    </a>
+                {% endif %}
+                
+                <form action="{{ url_for('refund_ticket', booking_id=ticket.id) }}" method="POST" onsubmit="return confirm('Refund this ticket?');">
+                    <button type="submit" 
+                            style="background: #d49f91; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; font-size: 11px;">
+                        {% if ticket.flight.status == "REFUNDED" %} CLAIM REFUND {% else %} REFUND {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="ticket-right" style="{% if ticket.flight.status == 'REFUNDED' %} background: #d49f91; {% endif %}">
+            <div style="text-align: center;">
+                <small>REF NO.</small><br>
+                <strong>#SKY{{ ticket.id }}</strong>
+            </div>
+            
+            {% if ticket.flight.status == "REFUNDED" %}
+                <div style="font-weight: bold; color: #fff; background: #e74c3c; padding: 2px 10px; border-radius: 4px;">VOID</div>
+            {% else %}
+                <div style="font-weight: bold;">PAID</div>
+            {% endif %}
+
+            <div style="font-size: 14px;">PHP {{ "{:,.2f}".format(ticket.total_paid) }}</div>
+        </div>
+    </div>
+{% else %}
+    <p style="color: white; text-align: center;">No tickets found. Start your journey today!</p>
+{% endfor %}
+        </div>
+</div>
+
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo">
+            <strong>AV</strong>
+        </div>
+        
+        <nav class="footer-nav">
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+        <h2>Alta Volare! &#9992;</h2>
+        <p>&copy; 2026 All Rights Reserved.</p>
+    </div>
+</footer>
+</body>
+</html>

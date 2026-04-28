@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyLine | Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+
+<body class="body">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <script>
+            alert("{{ message }}");
+          </script>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+     <div class="nav">
+            <div class="logo"><h1>SkyLine</h1></div>
+
+            <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"></a></li>
+                <li class="nav-buttons"><a href="#">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                        
+                    </ul>
+                </li>
+
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+
+            <button class="log-in"><a href="{{ url_for('login') }}">Log In</a></button>
+        </div>
+
+    <div class="login-section">
+        <div class="login-container">
+            <div class="login-box">
+                <h1>Welcome Back</h1>
+                <p>Ready for your next adventure?</p>
+                <hr style="width: 40%; margin-bottom: 20px;">
+                
+                <form action="/login" method="POST">
+                    <div class="form-group">
+                        <label for="user-email">Email Address</label>
+                        <input type="email" id="user-email" name="email" placeholder="Enter your email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="user-password">Password</label>
+                        <input type="password" id="user-password" name="password" placeholder="Enter your password" required>
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">LOG IN</button>
+                </form>
+                
+                <p class="signup-link">Don't have an account? <a href="{{ url_for('signup') }}">Sign up now</a></p>
+            </div>
+        </div>
+    </div>
+
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo">
+            <strong>AV</strong>
+        </div>
+        
+        <nav class="footer-nav">
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+        <h2>Alta Volare! &#9992;</h2>
+        <p>&copy; 2026 All Rights Reserved.</p>
+    </div>
+</footer>
+</body>
+
+
+</html>

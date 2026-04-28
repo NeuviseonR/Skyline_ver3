@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SkyLine Admin | Edit Flight</title> 
+    <link rel="stylesheet" href="{{ url_for('static', filename='adminstyle.css') }}">
+    
+    <script>
+        const cityData = {{ city_data_json | safe if city_data_json else '{}' }}; // Usually passed from Flask, or keep your hardcoded object here
+
+        function updateCities(countryId, cityId) {
+            const countrySelect = document.getElementById(countryId);
+            const citySelect = document.getElementById(cityId);
+            const selectedCountry = countrySelect.value;
+            citySelect.innerHTML = '<option value="">-- Select City --</option>';
+            if (cityData[selectedCountry]) {
+                cityData[selectedCountry].forEach(city => {
+                    let opt = document.createElement("option");
+                    opt.value = city;
+                    opt.innerHTML = city;
+                    citySelect.appendChild(opt);
+                });
+            }
+        }
+
+        function toggleReturn() {
+            const tripType = document.querySelector('input[name="trip_type"]:checked').value;
+            const returnSection = document.getElementById('return-section');
+            if (returnSection) {
+                returnSection.style.display = (tripType === 'round trip') ? 'block' : 'none';
+            }
+        }
+        window.onload = toggleReturn;
+    </script>
+</head>
+<body style="height: fit-content;">
+
+<div class="allbody" style="display: flex; background-color: #6b9a9d; justify-content: center; align-items: center; min-height: 80vh;">
+    <div style="width: 100%; height: 900px; position: relative; display: flex; justify-content: center;">
+        
+        <div class="admin-form-container" style="margin: 95px auto 40px auto;">
+            <form action="{{ url_for('edittickets', flight_id=flight.id) }}" method="POST">
+                <h2 style="color: #004d4d; margin-bottom: 20px;">Update Flight Ticket #{{ flight.id }}</h2>
+
+                <div class="promo-section" style="margin-bottom: 20px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px;">
+                    <h3 style="margin-top: 0;">Flight Type</h3>
+                    <div style="display: flex; gap: 20px;">
+                        <label><input type="radio" name="trip_type" value="one way trip" onclick="toggleReturn()" {% if flight.trip_type == 'one way trip' %}checked{% endif %}> One Way</label>
+                        <label><input type="radio" name="trip_type" value="round trip" onclick="toggleReturn()" {% if flight.trip_type == 'round trip' %}checked{% endif %}> Round Trip</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">  
+                        <label>From Country</label>
+                        <select id="from_country" name="from_country" onchange="updateCities('from_country', 'from_city')" required>
+                            {% for country in countries %}
+                            <option value="{{ country }}" {% if flight.from_country == country %}selected{% endif %}>{{ country }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>From City</label>
+                        <select id="from_city" name="from_city" required>
+                            <option value="{{ flight.from_city }}">{{ flight.from_city }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>To Country</label>
+                        <select id="to_country" name="to_country" onchange="updateCities('to_country', 'to_city')" required>
+                            {% for country in countries %}
+                            <option value="{{ country }}" {% if flight.to_country == country %}selected{% endif %}>{{ country }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>To City</label>
+                        <select id="to_city" name="to_city" required>
+                            <option value="{{ flight.to_city }}">{{ flight.to_city }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Departure Date</label>
+                        <input type="date" name="dep_date" value="{{ flight.dep_date }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Departure Time</label>
+                        <input type="time" name="dep_time" value="{{ flight.dep_time }}" required>
+                    </div>
+                </div>
+
+                <div id="return-section" style="display: {{ 'block' if flight.trip_type == 'round trip' else 'none' }}; margin-bottom: 20px;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Return Date</label>
+                            <input type="date" name="ret_date" value="{{ flight.ret_date if flight.ret_date != 'none' else '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Return Time</label>
+                            <input type="time" name="ret_time" value="{{ flight.ret_time if flight.ret_time != 'none' else '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Economy Tickets</label>
+                        <input type="number" name="tickets_economy" value="{{ flight.tickets_economy }}" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Business Tickets</label>
+                        <input type="number" name="tickets_business" value="{{ flight.tickets_business }}" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>First Class Tickets</label>
+                        <input type="number" name="tickets_first" value="{{ flight.tickets_first }}" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Base Price (PHP)</label>
+                        <input type="number" step="0.01" name="price" value="{{ flight.price }}" required>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 20px; display: flex; flex-direction:column; gap: 15px; align-items: stretch; align-items: center;">
+                    <button type="submit" class="submit-btn" style="flex: 2; margin: 0; height: 50px;">UPDATE FLIGHT TICKET</button>
+                    <a href="{{ url_for('admin_dashboard') }}" class="submit-btn" style="width: fit-content; flex: 1; background: #666; text-align: center; text-decoration: none; height: fit-content; display: block; margin: 0;">CANCEL</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

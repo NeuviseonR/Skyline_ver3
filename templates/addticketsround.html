@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SkyLine Admin | Add Flights</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='adminstyle.css') }}">
+    
+    <script>
+        // all the countires in the options
+        const cityData = {
+            "Afghanistan": ["Kabul (KBL)", "Kandahar (KDH)", "Herat (HEA)"],
+            "Albania": ["Tirana (TIA)"],
+            "admin_addticketsadmin_addticketsAlgeria": ["Algiers (ALG)", "Oran (ORN)"],
+            "Andorra": ["Andorra–La Seu d'Urgell (LEU)"],
+            "Angola": ["Luanda (LAD)"],
+            "Argentina": ["Buenos Aires (EZE)", "Córdoba (COR)", "Mendoza (MDZ)"],
+            "Armenia": ["Yerevan (EVN)"],
+            "Australia": ["Sydney (SYD)", "Melbourne (MEL)", "Brisbane (BNE)", "Perth (PER)"],
+            "Austria": ["Vienna (VIE)", "Salzburg (SZG)", "Innsbruck (INN)"],
+            "Azerbaijan": ["Baku (GYD)"],
+            "Bahamas": ["Nassau (NAS)", "Freeport (FPO)"],
+            "Bahrain": ["Bahrain (BAH)"],
+            "Bangladesh": ["Dhaka (DAC)", "Chittagong (CGP)"],
+            "Barbados": ["Bridgetown (BGI)"],
+            "Belgium": ["Brussels (BRU)", "Charleroi (CRL)"],
+            "Belize": ["Belize City (BZE)"],
+            "Bolivia": ["La Paz (LPB)", "Santa Cruz (VVI)"],
+            "Brazil": ["São Paulo (GRU)", "Rio de Janeiro (GIG)", "Brasília (BSB)"],
+            "Canada": ["Toronto (YYZ)", "Vancouver (YVR)", "Montreal (YUL)", "Calgary (YYC)"],
+            "Chile": ["Santiago (SCL)"],
+            "China": ["Beijing (PEK)", "Shanghai (PVG)", "Guangzhou (CAN)", "Shenzhen (SZX)"],
+            "Colombia": ["Bogotá (BOG)", "Medellín (MDE)", "Cali (CLO)"],
+            "Croatia": ["Zagreb (ZAG)", "Split (SPU)", "Dubrovnik (DBV)"],
+            "Cuba": ["Havana (HAV)", "Varadero (VRA)"],
+            "Czech Republic": ["Prague (PRG)"],
+            "Denmark": ["Copenhagen (CPH)", "Billund (BLL)"],
+            "Egypt": ["Cairo (CAI)", "Hurghada (HRG)", "Sharm El Sheikh (SSH)"],
+            "Ethiopia": ["Addis Ababa (ADD)"],
+            "Fiji": ["Nadi (NAN)", "Suva (SUV)"],
+            "Finland": ["Helsinki (HEL)", "Rovaniemi (RVN)"],
+            "France": ["Paris (CDG)", "Paris (ORY)", "Nice (NCE)", "Lyon (LYS)"],
+            "Germany": ["Frankfurt (FRA)", "Munich (MUC)", "Berlin (BER)", "Hamburg (HAM)"],
+            "Greece": ["Athens (ATH)", "Thessaloniki (SKG)", "Heraklion (HER)"],
+            "Hong Kong": ["Hong Kong (HKG)"],
+            "Hungary": ["Budapest (BUD)"],
+            "Iceland": ["Reykjavík (KEF)"],
+            "India": ["Delhi (DEL)", "Mumbai (BOM)", "Bangalore (BLR)", "Chennai (MAA)"],
+            "Indonesia": ["Jakarta (CGK)", "Bali (DPS)", "Surabaya (SUB)"],
+            "Ireland": ["Dublin (DUB)", "Shannon (SNN)", "Cork (ORK)"],
+            "Israel": ["Tel Aviv (TLV)"],
+            "Italy": ["Rome (FCO)", "Milan (MXP)", "Venice (VCE)", "Naples (NAP)"],
+            "Jamaica": ["Montego Bay (MBJ)", "Kingston (KIN)"],
+            "Japan": ["Tokyo (HND)", "Tokyo (NRT)", "Osaka (KIX)", "Fukuoka (FUK)"],
+            "Jordan": ["Amman (AMM)"],
+            "Kenya": ["Nairobi (NBO)", "Mombasa (MBA)"],
+            "Kuwait": ["Kuwait City (KWI)"],
+            "Lebanon": ["Beirut (BEY)"],
+            "Malaysia": ["Kuala Lumpur (KUL)", "Kota Kinabalu (BKI)", "Penang (PEN)"],
+            "Maldives": ["Male (MLE)"],
+            "Mexico": ["Mexico City (MEX)", "Cancún (CUN)", "Guadalajara (GDL)"],
+            "Morocco": ["Casablanca (CMN)", "Marrakesh (RAK)"],
+            "Netherlands": ["Amsterdam (AMS)", "Eindhoven (EIN)"],
+            "New Zealand": ["Auckland (AKL)", "Christchurch (CHC)", "Wellington (WLG)"],
+            "Nigeria": ["Lagos (LOS)", "Abuja (ABV)"],
+            "Norway": ["Oslo (OSL)", "Bergen (BGO)"],
+            "Oman": ["Muscat (MCT)"],
+            "Pakistan": ["Karachi (KHI)", "Lahore (LHE)", "Islamabad (ISB)"],
+            "Panama": ["Panama City (PTY)"],
+            "Peru": ["Lima (LIM)"],
+            "Philippines": ["Manila (MNL)", "Cebu (CEB)", "Davao (DVO)", "Clark (CRK)"],
+            "Poland": ["Warsaw (WAW)", "Kraków (KRK)"],
+            "Portugal": ["Lisbon (LIS)", "Porto (OPO)", "Faro (FAO)"],
+            "Qatar": ["Doha (DOH)"],
+            "Russia": ["Moscow (SVO)", "Moscow (DME)", "St. Petersburg (LED)"],
+            "Saudi Arabia": ["Riyadh (RUH)", "Jeddah (JED)", "Dammam (DMM)"],
+            "Singapore": ["Singapore (SIN)"],
+            "South Africa": ["Johannesburg (JNB)", "Cape Town (CPT)", "Durban (DUR)"],
+            "South Korea": ["Seoul (ICN)", "Seoul (GMP)", "Busan (PUS)"],
+            "Spain": ["Madrid (MAD)", "Barcelona (BCN)", "Palma de Mallorca (PMI)"],
+            "Sri Lanka": ["Colombo (CMB)"],
+            "Sweden": ["Stockholm (ARN)", "Gothenburg (GOT)"],
+            "Switzerland": ["Zurich (ZRH)", "Geneva (GVA)"],
+            "Taiwan": ["Taipei (TPE)", "Kaohsiung (KHH)"],
+            "Thailand": ["Bangkok (BKK)", "Bangkok (DMK)", "Phuket (HKT)", "Chiang Mai (CNX)"],
+            "Turkey": ["Istanbul (IST)", "Istanbul (SAW)", "Antalya (AYT)"],
+            "Ukraine": ["Kyiv (KBP)", "Lviv (LWO)"],
+            "United Arab Emirates": ["Dubai (DXB)", "Abu Dhabi (AUH)", "Sharjah (SHJ)"],
+            "United Kingdom": ["London (LHR)", "London (LGW)", "Manchester (MAN)", "Edinburgh (EDI)"],
+            "Vietnam": ["Ho Chi Minh City (SGN)", "Hanoi (HAN)", "Da Nang (DAD)"]
+        };
+
+        function updateCities(countryId, cityId) {
+            const countrySelect = document.getElementById(countryId);
+            const citySelect = document.getElementById(cityId);
+            const selectedCountry = countrySelect.value;
+
+            citySelect.innerHTML = '<option value="">-- Select City --</option>';
+
+            if (cityData[selectedCountry]) {
+                cityData[selectedCountry].forEach(city => {
+                    let opt = document.createElement("option");
+                    opt.value = city;
+                    opt.innerHTML = city;
+                    citySelect.appendChild(opt);
+                });
+            }
+        }
+
+        
+    </script>
+</head>
+<body style="height: fit-content;">
+    
+<div class="allbody" style="display: flex; background-color: #6b9a9d; justify-content: center; align-items: center; min-height: 80vh;">
+        <div style="width: 100%; height: 900px; position: relative; display: flex; justify-content: center;">
+            <div class="buttons12" style="position: absolute; top: 50px;  border-radius: 15px 15px 0 0;">
+                    <div><a href="{{ url_for('addticketsround') }}"  style="background-color: #478294;">Add Round Trip</a></div> 
+                    <div><a href="{{ url_for('addtickets') }}">Add One Way</a></div> 
+            </div>
+
+            <div class="admin-form-container" style="margin: 95px auto 40px auto; height: fit-content;">
+                
+                <form action="/addticketsround" method="POST">
+                    <div class="form-row">
+                        <div class="form-group">                          
+
+                            <label>From Country</label>
+                            <select id="from_country" name="from_country" onchange="updateCities('from_country', 'from_city')" required>
+                                <option value="">Select Country</option>
+                                <option value="Afghanistan">Afghanistan</option>
+                                <option value="Vietnam">Vietnam</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>From City</label>
+                            <select id="from_city" name="from_city" required>
+                                <option value="">Select Country First</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>To Country</label>
+                            <select id="to_country" name="to_country" onchange="updateCities('to_country', 'to_city')" required>
+                                <option value="">Select Country</option>
+                                <option value="Afghanistan">Afghanistan</option>
+                                <option value="Vietnam">Vietnam</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>To City</label>
+                            <select id="to_city" name="to_city" required>
+                                <option value="">Select Country First</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Departure Date</label>
+                            <input type="date" name="dep_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Departure Time</label>
+                            <input type="time" name="dep_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Flight Duration</label>
+                            <input type="text" name="duration" placeholder="e.g. 12h 30m" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Return Date</label>
+                            <input type="date" name="ret_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Return Time</label>
+                            <input type="time" name="ret_time" required>
+                        </div>                        
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Economy Tickets</label>
+                            <input type="number" name="tickets_economy" min="0" placeholder="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Business Tickets</label>
+                            <input type="number" name="tickets_business" min="0" placeholder="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>First Class Tickets</label>
+                            <input type="number" name="tickets_first" min="0" placeholder="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Base Price (USD)</label>
+                            <input type="number" step="0.01" name="price" required>
+                        </div>
+                    </div>
+
+                    <div class="promo-section">
+                        <h3>Active Promotions</h3>
+                        <div class="form-group">
+                            <label>Apply Discount/Promo</label>
+                            <select name="promo_code">
+                                <option value="none">No Promo</option>
+                                <option value="XMAS_25">Christmas Sale (25% Off)</option>
+                                <option value="FIRST_20">First 20 Passengers (10% Off)</option>
+                                <option value="NEW_YEAR">New Year Special (15% Off)</option>
+                                <option value="SUMMER_VIBE">Summer Getaway ($50 Flat Off)</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <button type="submit" class="submit-btn">CREATE FLIGHT TICKET</button>
+                </form>
+            </div>
+         </div>
+</div>
+
+    </body>
+</html>

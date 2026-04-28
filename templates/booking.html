@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyLine | Bookings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .body {background-image: url(static/images/booking.webp); background-size: cover; }
+        .ticket-container { max-width: 900px; margin: 20px auto; display: flex; flex-direction: column; gap: 30px; }
+        .ticket-card { display: flex; background: #eaf8ef; border-radius: 25px; overflow: hidden; color: #000; font-family: sans-serif; min-height: 220px; box-shadow: 3px 3px 10px rgb(0, 60, 78); }
+        .ticket-left { flex: 3; padding: 20px; position: relative; border-right: 4px dashed #a7a7a7; }
+        .ticket-right { flex: 1; background: #b8d8d8; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative; }
+        
+        /* Decorative punch hole */
+        .ticket-right::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 25px; height: 25px; background: #fff; border-radius: 50%; box-shadow: inset 3px 3px 5px rgba(1, 1, 59, 0.589);}
+
+        .flight-path { display: flex; align-items: center; gap: 15px; margin: 10px 0; }
+        .line { flex-grow: 1; height: 2px; background: #d49f91; position: relative; }
+        .class-badge { background: #7fa7aa; color: white; padding: 5px 15px; border-radius: 10px; font-size: 14px; margin-right: 5px; border: none; }
+        .select-btn { background: #6b9a9d; color: white; padding: 10px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .trip-tag { position: absolute; top: 10px; right: 20px; font-size: 12px; font-weight: bold; }
+        .booking-wrapper {background-color: rgba(255, 255, 255, 0.507); border-radius: 25px; display: flex; max-width: 1200px; margin: 50px auto; gap: 20px; padding: 20px;}
+        .search-sidebar { flex: 1; background: #f8f9fa; padding: 20px; border-radius: 25px; height: fit-content; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); border: solid black 1px;}
+        .ticket-container { flex: 3; margin-top: 0; } /* Overriding previous margin */
+        /* Form styling */
+        .filter-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+        .filter-group label { font-weight: bold; font-size: 14px; }
+        .filter-group select, .filter-group input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+        .search-btn { width: 100%; padding: 10px; background: #6b9a9d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+
+<body class="body">
+    <div class="nav">
+        <div class="logo"><h1>SkyLine</h1></div>
+        <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"  style="width: 100%;"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('popular') }}">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                        
+                    </ul>
+                </li>
+
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+            <!-- added code for the session account-->
+            <div class="nav-auth">
+                {% if session['user_id'] %}
+                    <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                        <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                            Welcome, {{ session['first_name'] }}!
+                        </span>
+                        
+                        <!-- For clickable avatar to booked flights page -->
+                        <a href="{{ url_for('bookedflights') }}" style="text-decoration: none;">
+                        <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                        </div>
+                        </a>
+                        <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                    </div>
+                {% else %}
+                    <button class="log-in"><a href="{{ url_for('login') }}">Log In</a></button>
+                {% endif %} 
+            </div>
+    </div>
+
+<div class="timetable-section" style="max-width: 1200px; margin: 40px auto 10px auto; padding: 0 20px;">
+    <h2 style="font-family: 'Bookman Old Style', serif; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+        Upcoming Flight Schedule (Next 24 Hours)
+    </h2>
+    <table style="width: 100%; border-collapse: collapse; background: rgba(234, 248, 239, 0.9); border-radius: 15px; overflow: hidden; box-shadow: 3px 3px 10px rgba(0, 60, 78, 0.5);">
+        <thead>
+            <tr style="background-color: #6b9a9d; color: white; text-align: left;">
+                <th style="padding: 15px; border-right: 1px solid rgba(255,255,255,0.3);">Departure Time</th>
+                <th style="padding: 15px; border-right: 1px solid rgba(255,255,255,0.3);">Destination</th>
+                <th style="padding: 15px;">Route Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if timetable %}
+                {% for f in timetable %}
+                <tr style="border-bottom: 1px solid #ccc; transition: background 0.3s; 
+                    {% if 'Delayed' in f.status %} background: #fff9f0; 
+                    {% elif f.status == 'REFUNDED' %} background: #fff0f0; {% endif %}">
+                    
+                    <td style="padding: 15px; font-weight: bold;">
+                        {% if "Delayed" in f.status %}
+                            <span style="color: #777; text-decoration: line-through; font-size: 0.9rem;">{{ f.dep_time }}</span>
+                            <br>
+                            <span style="color: #d35400;">NEW: {{ f.status.split(': ')[1] }}</span>
+                        {% else %}
+                            <span style="color: #d35400;">{{ f.dep_time }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td style="padding: 15px;">
+                        <strong>{{ f.to_city }}</strong>, {{ f.to_country }}
+                        {% if f.status == "REFUNDED" %}
+                            <span style="margin-left: 10px; padding: 2px 8px; background: #e74c3c; color: white; border-radius: 4px; font-size: 0.7rem; vertical-align: middle;">CANCELLED</span>
+                        {% endif %}
+                    </td>
+
+                    <td style="padding: 15px; color: #444;">
+                        {{ f.from_city }} <span style="color: #6b9a9d;">&#9992;</span> {{ f.to_city }} 
+                        <small style="margin-left: 10px; color: #777;">({{ f.duration }})</small>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="3" style="padding: 30px; text-align: center; color: #666; font-style: italic;">
+                        No flights departing within the next 24 hours.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<div class="booking-wrapper" >
+        <div class="search-sidebar" >
+            <h3>Search Flights</h3>
+            <form action="{{ url_for('booking') }}" method="GET">
+                <div class="filter-group">
+                    <label>Trip Type</label>
+                    <select name="trip_type">
+                        <option value="">Any</option>
+                        <option value="one way trip">One Way</option>
+                        <option value="round trip">Round Trip</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Seat Class</label>
+                    <select name="seat_class">
+                        <option value="">Any</option>
+                        <option value="economy">Economy</option>
+                        <option value="business">Business</option>
+                        <option value="first">First Class</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>From</label>
+                    <input type="text" name="from_city" placeholder="City Name">
+                </div>
+                <div class="filter-group">
+                    <label>To</label>
+                    <input type="text" name="to_city" placeholder="City Name">
+                </div>
+                <div class="filter-group">
+                    <label>Departure Date</label>
+                    <input type="date" name="dep_date">
+                </div>
+                <div class="filter-group">
+                    <label>Arrange By</label>
+                    <select name="sort_by">
+                        <option value="dep_date">Date</option>
+                        <option value="price">Price</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                    <input type="checkbox" name="has_promo" value="yes">
+                    <label style="margin-bottom: 0;">Show Promos Only</label>
+                </div>
+                <button type="submit" class="search-btn">Filter Results</button>
+                <button type="submit" class="search-btn" style="margin-top: 10px;">Flight Status</button>
+                <a href="{{ url_for('booking') }}" style="display:block; text-align:center; margin-top:10px; font-size:12px; color:#666; text-decoration:none;">Clear Filters</a>
+            </form>
+        </div>
+        <div class="ticket-container" action="/checkout" method="POST">
+            {% for flight in flights %}
+                {# Only show flight if total tickets > 0 #}
+                {% if flight.tickets_economy > 0 or flight.tickets_business > 0 or flight.tickets_first > 0 %}
+                <div class="ticket-card">
+                    <div class="ticket-left">
+                        <h2>SkyLine</h2>
+                        <span class="trip-tag">*{{ flight.trip_type.upper() }}</span>
+
+                        <div class="flight-path">
+                            <div><strong>DEPART</strong></div>
+                            <div style="text-align:center">{{ flight.dep_time }}<br><small>{{ flight.from_city }}</small></div>
+                            <div class="line"></div>
+                            <div style="position:absolute; left:50%; transform:translateX(-50%); font-size:12px; margin-top:20px;">{{ flight.duration }} hrs</div>
+                            <div style="text-align:center">&#9992;</div>
+                            <div class="line"></div>
+                            <div style="text-align:center">{{ calc_arrival(flight.dep_time, flight.duration) }}<br><small>{{ flight.to_city }}</small></div>
+                        </div>
+
+                        {% if flight.trip_type == "round trip" %}
+                        <div class="flight-path" style="margin-top:20px;">
+                            <div><strong>RETURN</strong></div>
+                            
+                            <div style="text-align:center">{{ flight.ret_time }}<br><small>{{ flight.to_city }}</small></div>
+                            
+                            <div class="line"></div>
+                            <div style="position:absolute; left:50%; transform:translateX(-50%); font-size:12px; margin-top:20px;">{{ flight.duration }}</div>
+                            <div style="text-align:center">&#9992;</div>
+                            <div class="line"></div>
+                            
+                            <div style="text-align:center">
+                                {{ calc_arrival(flight.ret_time, flight.duration) }}<br>
+                                <small>{{ flight.from_city }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div style="margin-top: 20px;">
+                            {% if flight.tickets_economy > 0 %}<button class="class-badge">Economy</button>{% endif %}
+                            {% if flight.tickets_business > 0 %}<button class="class-badge">Business</button>{% endif %}
+                            {% if flight.tickets_first > 0 %}<button class="class-badge">First Class</button>{% endif %}
+                        </div>
+                        
+                        <hr style="margin-top:20px; border: 0; border-top: 1px solid #999;">
+                        <p style="font-size:14px">Depart Date: {{ flight.dep_date }} {% if flight.trip_type == "round trip" %}&nbsp;&nbsp;&nbsp; Return Date: {{ flight.ret_date }}{% endif %}</p>
+                    </div>
+
+                    <div class="ticket-right">
+                        <div>
+                            {% if flight.promo_code and flight.promo_code != 'none' %}
+                                <strong style="font-size: 14px;">{{ flight.promo_code }}</strong>
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 24px; font-weight: bold;">$ {{ "{:,.2f}".format(flight.price) }}</div>
+                        <a href="{{ url_for('checkout', flight_id=flight.id) }}">
+                            <button class="select-btn">SELECT</button>
+                        </a>
+                        
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+</div>
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo">
+            <strong>AV</strong>
+        </div>
+        
+        <nav class="footer-nav">
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+        <h2>Alta Volare! &#9992;</h2>
+        <p>&copy; 2026 All Rights Reserved.</p>
+    </div>
+</footer>
+</body>
+</html>

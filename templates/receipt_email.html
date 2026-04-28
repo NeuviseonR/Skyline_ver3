@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
+        .receipt-container { max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; }
+        .header { border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .title { font-size: 18px; text-transform: uppercase; color: #7f8c8d; }
+        .meta-info { font-size: 11px; text-align: right; color: #95a5a6; }
+        
+        .flight-banner { background-color: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; font-weight: bold; margin: 15px 0 5px 0; display: flex; justify-content: space-between; }
+        .details-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .details-table td { padding: 10px; border: 1px solid #eee; vertical-align: top; }
+        .label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .value { font-size: 14px; font-weight: bold; color: #2c3e50; }
+
+        .passenger-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .passenger-table th { background: #ecf0f1; text-align: left; padding: 8px; font-size: 12px; border: 1px solid #dee2e6; }
+        .passenger-table td { padding: 10px; border: 1px solid #dee2e6; font-size: 14px; }
+
+        .price-section { margin-top: 30px; border-top: 1px solid #2c3e50; padding-top: 10px; text-align: right; }
+        .price-row { margin: 5px 0; font-size: 14px; }
+        .total-row { font-size: 20px; font-weight: bold; color: #2c3e50; border-top: 1px double #2c3e50; padding-top: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header">
+            <div class="logo">SkyLine</div>
+            <div class="title">Air Travel Receipt</div>
+        </div>
+        <div class="meta-info">Printed: {{ print_date }}</div>
+
+        <div class="flight-banner">
+            <span>{{ booking.flight.from_city }} to {{ booking.flight.to_city }}</span>
+            <span>{{ booking.flight.dep_date }}</span>
+        </div>
+        <table class="details-table">
+            <tr>
+                <td>
+                    <span class="label">Airline</span>
+                    <span class="value">SkyLine Airlines</span>
+                    <span style="font-size: 12px; color: #e74c3c;">{{ booking.tier|capitalize }} - Non-Refundable</span>
+                </td>
+                <td style="text-align: right;">
+                    <span class="label">Flight Time</span>
+                    <span class="value">{{ booking.flight.dep_time }} - {{ arrival_time }}</span>
+                    <span style="font-size: 12px;">Duration: {{ booking.flight.duration }}</span>
+                </td>
+            </tr>
+        </table>
+
+        <table class="passenger-table">
+            <thead>
+                <tr>
+                    <th>Passenger Name</th>
+                    <th>Confirmation</th>
+                    <th>Seat</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ booking.last_name }}, {{ booking.first_name }}</td>
+                    <td>SKL-{{ booking.id }}</td>
+                    <td>{{ booking.seat_number }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="price-section">
+            <div class="price-row">Base Fare: PHP {{ "%.2f"|format(booking.total_paid * 0.88) }}</div>
+            <div class="price-row">Taxes & Fees: PHP {{ "%.2f"|format(booking.total_paid * 0.12) }}</div>
+            <div class="total-row">Total: PHP {{ "%.2f"|format(booking.total_paid) }}</div>
+        </div>
+    </div>
+</body>
+</html>

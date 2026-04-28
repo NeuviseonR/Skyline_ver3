@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airline Policies</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='baggage.css') }}">
+
+</head>
+
+<!-- BODY -->
+    <body class="body">
+        <!-- NAVIGATIONS -->
+        <div class="nav">
+            <div class="logo"><h1>SkyLine</h1></div>
+
+            <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"></a></li>
+                <li class="nav-buttons"><a href="#">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3" style="width: 100%;"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                        
+                    </ul>
+                </li>
+
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+                <div class="nav-auth">
+                    {% if session['user_id'] %}
+                        <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                            <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                                Welcome, {{ session['first_name'] }}!
+                            </span>
+
+                            <!-- For clickable avatar to booked flights page -->
+                            <a href="{{ url_for('bookedflights') }}" style="text-decoration: none;">
+                            <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            </a>
+                            
+                            <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                        </div>
+                    {% else %}
+                        <button class="log-in">
+                            <a style="font-family: 'Bookman Old Style';" href="{{ url_for('login') }}">Log In</a>
+                        </button>
+                    {% endif %}
+                </div>
+
+        </div>
+       
+
+        <!-- BODY SECTION -->
+         <div class="headertext">            
+            <span style="text-align: center; font-size: 30px;"><h1>Airline policies</h1></span>
+         </div>
+
+            
+        <div class="bagbody">
+            <div class="leftbag">
+                <h2>Airline Policies</h2>
+                <a href="{{ url_for('policies') }}#denied">Denied Boarding</a><br>
+                <hr>
+                <a href="{{ url_for('policies') }}#liability">Baggage Liability</a><br>
+                <hr>
+                <a href="{{ url_for('policies') }}#conduct">Passenger Conduct</a><br>
+                <hr>
+                <a href="{{ url_for('policies') }}#schedules">Schedules & Delays</a><br>
+                <hr>
+                <a href="{{ url_for('policies') }}#successive">Successive Carriers</a><br>
+                <hr>
+            </div>
+
+            <div class="rightbag">
+                <div class="info" id="denied">
+                    <h2>Denied Boarding & Overbooking</h2>
+                    <p>In the event that a flight is overbooked, the airline will first call for volunteers to surrender their seats in exchange for compensation. If there are not enough volunteers:</p>
+                    <ul>
+                        <li><strong>Priority Boarding:</strong> The airline reserves the right to determine boarding priority based on fare class, frequent flyer status, and check-in time.</li>
+                        <li><strong>Compensation:</strong> Passengers denied boarding involuntarily are entitled to travel vouchers or cash compensation, meals, and hotel accommodation if the next available flight is the following day.</li>
+                    </ul>
+                </div>
+
+                <div class="info" id="liability">
+                    <h2>Baggage Liability and Claims</h2>
+                    <p>The airline’s liability for lost, delayed, or damaged baggage is limited under the Montreal Convention to approximately 1,288 Special Drawing Rights (SDR).</p>
+                    <ul>
+                        <li><strong>Exclusions:</strong> The airline is not liable for fragile, perishable, or valuable items such as cash, jewelry, computers, and business documents packed in checked baggage.</li>
+                        <li><strong>Reporting Timelines:</strong> 
+                            <ul>
+                                <li>Damaged Baggage: Must be reported in writing within 7 days.</li>
+                                <li>Delayed/Lost Baggage: Must be reported within 21 days.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="info" id="conduct">
+                    <h2>Conduct of Passengers</h2>
+                    <p>The airline maintains the right to refuse carriage or remove a passenger for safety and security reasons.</p>
+                    <ul>
+                        <li><strong>Refusal of Carriage:</strong> This applies to passengers under the influence of alcohol/drugs or those exhibiting behavior that threatens the crew.</li>
+                        <li><strong>Diversion Costs:</strong> If a flight is diverted due to passenger misconduct, the airline reserves the right to recover all associated costs from that passenger.</li>
+                    </ul>
+                </div>
+
+                <div class="info" id="schedules">
+                    <h2>Schedules, Delays, and Substitution</h2>
+                    <p>Times shown in timetables are not guaranteed and do not form part of the contract of carriage.</p>
+                    <ul>
+                        <li><strong>Substitution:</strong> The airline may substitute alternate carriers or aircraft without prior notice.</li>
+                        <li><strong>Force Majeure:</strong> The airline is not liable for delays caused by "Acts of God," weather, or air traffic control restrictions.</li>
+                    </ul>
+                </div>
+
+                <div class="info" id="successive">
+                    <h2>Successive Carriers</h2>
+                    <p>Carriage performed by several successive carriers under one ticket is regarded as a single operation.</p>
+                    <ul>
+                        <li><strong>Claims:</strong> For baggage claims, passengers may take action against the first carrier, the last carrier, or the specific carrier where the damage occurred.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- FOOTER SECTION -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo">
+            <strong>AV</strong>
+        </div>
+        
+        <nav class="footer-nav">
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+        <h2>Alta Volare! &#9992;</h2>
+        <p>&copy; 2026 All Rights Reserved.</p>
+    </div>
+</footer>
+    </body>
+</html>

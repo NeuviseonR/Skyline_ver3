@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Ticket</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='checkout.css') }}">
+    <style>
+        body{ background-color: #6b9a9d;}
+        .seat-container { display: grid; gap: 5px; justify-content: center; margin: 20px 0; }
+        .seat { width: 35px; height: 35px; background: #ccc; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 4px; }
+        .seat.selected { background: #6b9a9d; color: white; }
+        .seat.occupied { background: #e74c3c; cursor: not-allowed; }
+        .aisle { width: 35px; text-align: center; line-height: 35px; font-weight: bold; }
+    </style>
+</head>
+<body style="padding: 50px; background-image: url(images/pop1.jpg);">
+    <div style="background: white; padding: 40px; border-radius: 15px; max-width: 600px; margin: auto;">
+        <h2>Edit Details: Ticket #{{ booking.id }}</h2>
+        <form action="{{ url_for('edit_ticket', booking_id=booking.id) }}" method="POST">
+            <p>First Name</p>
+            <input type="text" name="first_name" value="{{ booking.first_name }}" required>
+            <p>Middle Initial</p>
+            <input type="text" name="middle_initial" value="{{ booking.middle_initial }}" maxlength="1" style="width: 50px;">
+            <p>Last Name</p>
+            <input type="text" name="last_name" value="{{ booking.last_name }}" required><br><br>
+            <p>Date of Birth</p>
+            <input type="date" name="dob" value="{{ booking.dob }}">
+            <p>Nationality</p>
+            <input type="text" name="nationality" value="{{ booking.nationality }}"><br><br>
+
+            {% if booking.seat_number != "Auto-Assigned" %}
+                <hr>
+                <h3>Change Your Seat</h3>
+                <p>Current Seat: <strong>{{ booking.seat_number }}</strong></p>
+                <input type="hidden" name="seat_number" id="edit_hidden_seat" value="{{ booking.seat_number }}">
+                
+                <div id="seat_map_container" class="seat-container"></div>
+            {% endif %}
+
+            <div style="margin-top: 30px;">
+                <button type="submit" class="pay-btn">SAVE CHANGES</button>
+                <a href="{{ url_for('bookedflights') }}">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Only run seat map logic if the element exists
+        const seatMapCont = document.getElementById('seat_map_container');
+        if (seatMapCont) {
+            const currentTier = "{{ booking.tier }}";
+            const currentSeat = "{{ booking.seat_number }}";
+
+            function renderEditMap() {
+                seatMapCont.innerHTML = '';
+                let rows = currentTier === 'first' ? 5 : (currentTier === 'business' ? 10 : 20);
+                let sideSeats = currentTier === 'first' ? 1 : (currentTier === 'business' ? 2 : 3);
+                const letters = "ABCDEF".split("");
+                seatMapCont.style.gridTemplateColumns = `repeat(${sideSeats * 2 + 1}, 35px)`;
+
+                for (let r = 1; r <= rows; r++) {
+                    let charIdx = 0;
+                    for (let s = 0; s < sideSeats; s++) createEditSeat(r, letters[charIdx++]);
+                    let aisle = document.createElement('div'); aisle.className = 'aisle'; aisle.innerText = r; seatMapCont.appendChild(aisle);
+                    for (let s = 0; s < sideSeats; s++) createEditSeat(r, letters[charIdx++]);
+                }
+            }
+
+            // Convert the Python list to a JavaScript array
+        const occupiedSeats = {{ occupied_seats|tojson }};
+
+        function createEditSeat(r, c) {
+            let s = document.createElement('div');
+            s.className = 'seat';
+            let name = r + c;
+            s.innerText = name;
+            
+            // Check if seat is in the occupied list
+            if (occupiedSeats.includes(name)) {
+                s.classList.add('occupied');
+            } else if (name === currentSeat) {
+                s.classList.add('selected');
+            }
+            
+            s.onclick = function() {
+                // Prevent clicking if occupied
+                if (this.classList.contains('occupied')) {
+                    alert("This seat is already taken by another passenger.");
+                    return;
+                }
+                
+                document.querySelectorAll('.seat').forEach(x => x.classList.remove('selected'));
+                this.classList.add('selected');
+                document.getElementById('edit_hidden_seat').value = name;
+            };
+            seatMapCont.appendChild(s);
+        }
+
+            renderEditMap();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+4/22/2026 SkyLine Update
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\
+M A I N  F U N C T I O N S
+\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+Patch Update (4/25/26 @11:52pm)
+
+New Features Added:
+- Functional 'Add New Flight' / ticket button
+- Functional 'Add One Way' & 'Add Round Trip' button and Data Creation
+- Functional Remove/Delete Button in Flight Management Page
+- Functional Edit Button in Flight Management Page (need fix page format and functionality sa ubang part sa text fields)
+- Reflective 'Recent Transaction' under Sub-Navigation Admin Panel
+- Reflective 'Registered Users' (WALA PANI CRUD)
+- Session Management Disposal is functional
+
+
+
+
+
+
+
+General Notes:
+- (Done 4/23/26) 'Book Now' button in index.html needs function
+- (pending) 'Submit' button in FAQs
+
+
+Edited files: (4/22/26)
+1. App.py
+- Added new functions such as log out.
+- Edited a bunch of features such as register creds, password hashing (MCF hashing), imported files
+
+2. index.html
+- Added Session Dislay (name of the current user logged in the system)
+
+3. Login.html
+- Log In button functionality continuation (redirection to session index.html)
+
+4. skyline.db
+- Changed Data Size of Password to 255 due to password Hashing to avoid error
+
+---------------------------------------
+Edited Files: (4/23/26)
+1. index.html
+- added session display
+- 'Book Now' button is now functioning
+- Functional 'Popular' button
+
+2. booking.html
+- added session display
+- edited title line
+
+3. popular.html
+- added session display
+- edited title line
+
+4. baggage.html
+- added session display
+- edited title line
+
+5. checkout.html
+- added session display
+
+---------------------------------------
+Edited Files: (4/24/26)
+1. index.html
+- avatar button redirection to booked flights of the current user
+
+NOTE: Basically most of the html files is edited, gibutangan sa clickable avatar
+
+2. bookedflights.html (new file added today)
+
+
+=================================================================================
+============================================================================
+=======================================================================
+
+//KONNIREWASHERE// update -4 7 26 user logical errors n shit
+
+fixed all the logical errors in user especially when buying tickets. that shit had so many errors. my bad i made that part lols
+changed the payment options to paymongo but was unable to finish it cause i dont have a valid id to get api keys :((
+added edit booking and added a refund option. basic CRUD stuff
+fixed the spacing and the height of the page cause it was bugging out
+current admin ui fixed
+ban added to users {{{manage the users like delete, ban, edit}}}
+popular can be edited by the admin on the dashboard
+contact page works.admin can also reply via email
+email in reciept
+change status implemented 
+flight status has been added. effects have been added as well
+

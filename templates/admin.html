@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyLine | Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <style>
+        /* 1. Page-Specific Background */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box; /* Ensures padding doesn't increase width */
+        }
+
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        .dest-card:hover .dest-overlay { opacity: 1; }
+
+        .admin-body {
+            background-image: url('{{ url_for("static", filename="images/booking.webp") }}') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        /* 2. Wrapper Layout - Fixed width calculation */
+        .admin-wrapper { 
+            display: flex; 
+            width: 100%;
+            max-width: 1400px; /* Limits growth on ultra-wide screens */
+            margin: 40px auto; 
+            gap: 20px; 
+            padding: 0 20px; 
+            flex: 1;
+            align-items: flex-start; /* Prevents sidebar from stretching to table height */
+        }
+        
+        /* 3. Sidebar - Using flex-basis for stability */
+        .admin-sidebar { 
+            flex: 0 0 280px; /* Fixed width sidebar */
+            background: rgba(0, 77, 77, 0.9); 
+            border-radius: 15px; 
+            padding: 25px; 
+            height: auto; 
+        }
+        
+        .admin-sidebar h3 { 
+            color: gold; 
+            font-family: sans-serif; 
+            font-size: 1.4rem; 
+            margin-bottom: 25px; 
+            border-bottom: 2px solid gold; 
+            padding-bottom: 10px; 
+        }
+        
+        /* 4. Navigation Buttons */
+        .tab-btn { 
+            width: 100%; 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            border: none; 
+            background: transparent; 
+            color: white; 
+            text-align: left; 
+            cursor: pointer; 
+            font-family: sans-serif; 
+            font-weight: bold; 
+            font-size: 1rem; 
+            border-radius: 8px; 
+            transition: 0.3s; 
+        }
+        .tab-btn:hover { background: rgba(255, 215, 0, 0.2); }
+        .tab-btn.active { background: gold; color: black; }
+
+        /* 5. Content Area - Takes remaining space */
+        .admin-content { 
+            flex: 1; 
+            min-width: 0; /* Important: allows table to shrink if screen is small */
+        }
+
+        .admin-section { 
+            display: none; 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            min-height: 700px; 
+            overflow-x: auto; /* Adds scrollbar to table if it overflows */
+        }
+        .admin-section.active { display: block; animation: fadeIn 0.4s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-family: sans-serif; }
+        th, td { padding: 15px 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 0.95rem; }
+        th { background-color: #004d4d; color: white; white-space: nowrap; }
+        
+        .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; white-space: nowrap;}
+        .status-admin { background: #ffd700; color: #000; }
+        .status-user { background: #004d4d; color: #fff; }
+    </style>
+
+</head>
+<body class="admin-body">
+
+    <div class="nav">
+        <div class="logo"><h1>SkyLine</h1></div>
+                        <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                            <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                                Welcome, {{ session['first_name'] }}!
+                            </span>
+
+                            <a href="{{ url_for('bookedflights') }}" style="text-decoration: none;">
+                                <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                </div>
+                            </a>
+
+                            <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                        </div>   
+    </div>
+
+    <div class="admin-wrapper">
+        <div class="admin-sidebar">
+            <h3>Admin Panel</h3>
+            <button class="tab-btn active" onclick="openTab(event, 'flights')">✈ Manage Flights</button>
+            <button class="tab-btn" onclick="openTab(event, 'timetable-section')">📈 Manage Flight Timetable</button>
+            <button class="tab-btn" onclick="openTab(event, 'popular_dest')">🌍 Manage Popular Places</button>
+            <button class="tab-btn" onclick="openTab(event, 'transactions')">💳 Recent Transactions</button>
+            <button class="tab-btn" onclick="openTab(event, 'messages')">📧 Recent Messages</button>
+            <button class="tab-btn" onclick="openTab(event, 'users')">👥 Registered Users</button>
+        </div>
+
+        <div class="admin-content">
+
+            <div id="timetable-section" class="admin-section active">
+    <h2 style="font-size: 2rem; color: #004d4d;">Upcoming Flight Schedule (120 hours)</h2>
+    <table style="width: 100%; border-collapse: collapse; background: rgba(234, 248, 239, 0.9); border-radius: 15px; overflow: hidden; box-shadow: 3px 3px 10px rgba(0, 60, 78, 0.5);">
+        <thead>
+            <tr style="background-color: #6b9a9d; color: white; text-align: left;">
+                <th style="padding: 15px; border-right: 1px solid rgba(255,255,255,0.3);">Departure Time</th>
+                <th style="padding: 15px; border-right: 1px solid rgba(255,255,255,0.3);">Destination</th>
+                <th style="padding: 15px; border-right: 1px solid rgba(255,255,255,0.3);">Route Details</th>
+                <th style="padding: 15px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if timetable %}
+                {% for f in timetable %}
+                <tr style="border-bottom: 1px solid #ccc; transition: background 0.3s; {% if 'Delayed' in f.status %} background: #fff4e6; {% elif f.status == 'REFUNDED' %} background: #ffe3e3; {% endif %}">
+                    <td style="padding: 15px; font-weight: bold;">
+                        <span style="color: #d35400;">{{ f.dep_time }}</span>
+                        {% if "Delayed" in f.status %}
+                            <br><span style="color: #27ae60; font-size: 0.8rem;">New: {{ f.status.split(': ')[1] }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px;">
+                        <strong>{{ f.to_city }}</strong>, {{ f.to_country }}
+                        {% if f.status == "REFUNDED" %}
+                            <span style="display:block; color: red; font-size: 0.7rem; font-weight: bold;">CANCELLED</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px; color: #444;">
+                        {{ f.from_city }} <span style="color: #6b9a9d;">&#9992;</span> {{ f.to_city }} 
+                        <small style="margin-left: 10px; color: #777;">({{ f.duration }})</small>
+                    </td>
+                    <td style="padding: 15px;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <form action="{{ url_for('cancel_flight', flight_id=f.id) }}" method="POST" onsubmit="return confirm('Cancel this flight and set to Refunded?');">
+                                <button type="submit" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">Cancel</button>
+                            </form>
+
+                            <form action="{{ url_for('delay_flight', flight_id=f.id) }}" method="POST" style="display: flex; gap: 5px;">
+                                <input type="time" name="new_time" required style="padding: 3px; border-radius: 4px; border: 1px solid #ccc;">
+                                <button type="submit" style="background: #f39c12; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">Delay</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" style="padding: 30px; text-align: center; color: #666; font-style: italic;">
+                        No flights departing within the next 120 hours.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+            <div id="flights" class="admin-section active">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="font-size: 2rem; color: #004d4d;">Flight Management</h2>
+                    <a href="{{ url_for('addtickets') }}" style="background: #004d4d; color: white; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">+ Add New Flight</a>
+                </div>
+
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Route</th>
+                            <th>Departure (Date/Time)</th>
+                            <th>Return (Date/Time)</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for flight in flights %}
+                        <tr>
+                            <td>#{{ flight.id }}</td>
+                            <td>
+                                <span class="status-pill" style="background: {{ '#e3f2fd' if flight.trip_type == 'one way trip' else '#f3e5f5' }}; color: black; border: 1px solid #ccc;">
+                                    {{ flight.trip_type|upper }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ flight.from_city }}</strong> <br> 
+                                <small>to</small> {{ flight.to_city }}
+                            </td>
+                            <td>
+                                {{ flight.dep_date }} <br>
+                                <small style="color: #666;">{{ flight.dep_time }}</small>
+                            </td>
+                            <td>
+                                {% if flight.trip_type == 'round trip' %}
+                                    {{ flight.ret_date }} <br>
+                                    <small style="color: #666;">{{ flight.ret_time }}</small>
+                                {% else %}
+                                    <span style="color: #ccc;">—</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight: bold; color: #004d4d;">
+                                PHP {{ "{:,.2f}".format(flight.price) }}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="{{ url_for('edittickets', flight_id=flight.id) }}" 
+                                        style="background: #ffa500; color: black; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.8rem;">
+                                        Edit
+                                    </a>
+
+                                    <form action="{{ url_for('delete_flight', flight_id=flight.id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" 
+                                                onclick="return confirm('Delete this flight permanentely?')"
+                                                style="background: #ff4d4d; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8rem;">
+                                            Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="popular_dest" class="admin-section">
+                <h2 style="font-size: 2rem; color: #004d4d;">Manage Popular Destinations</h2>
+                
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #ddd;">
+                    <h3>Add New Destination</h3>
+                    <form action="{{ url_for('add_destination') }}" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <input type="text" name="name" placeholder="Place Name (e.g. Boracay)" required style="padding: 10px;">
+                        <select name="category" required style="padding: 10px;">
+                            <option value="local">Local</option>
+                            <option value="international">International</option>
+                        </select>
+                        <input type="text" name="description" placeholder="Short Description" required style="grid-column: span 2; padding: 10px;">
+                        <input type="file" name="image_path" required style="padding: 10px;">
+                        <button type="submit" style="grid-column: span 2; background: #004d4d; color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold;">Save Destination</button>
+                    </form>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+                    {% for dest in destinations %}
+                    <div class="dest-card" style="position: relative; height: 150px; border-radius: 10px; overflow: hidden; background-image: url('{{ dest.image_path }}'); background-size: cover; background-position: center;">
+                        <div class="dest-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; transition: 0.3s; padding: 10px; text-align: center;">
+                            <p style="font-weight: bold; margin: 0;">{{ dest.name }}</p>
+                            <button onclick="showEditForm('{{ dest.id }}', '{{ dest.name }}', '{{ dest.description }}', '{{ dest.category }}')" style="margin-top: 10px; background: gold; border: none; padding: 5px 10px; cursor: pointer; border-radius: 5px;">Edit Info</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="editModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+                <div style="background: white; padding: 30px; border-radius: 15px; width: 400px;">
+                    <h3>Edit Destination</h3>
+                    <form id="editForm" method="POST">
+                        <input type="text" id="edit_name" name="name" required style="width: 100%; margin-bottom: 10px; padding: 8px;">
+                        <textarea id="edit_desc" name="description" required style="width: 100%; margin-bottom: 10px; padding: 8px;"></textarea>
+                        <select id="edit_cat" name="category" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+                            <option value="local">Local</option>
+                            <option value="international">International</option>
+                        </select>
+                        <p style="font-size: 0.8rem; color: #666;">Change image (optional):</p>
+                        <input type="file" name="image_path" style="margin-bottom: 15px;">
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" style="flex: 1; background: #004d4d; color: white; border: none; padding: 10px; border-radius: 5px;">Update</button>
+                            <button type="button" onclick="document.getElementById('editModal').style.display='none'" style="flex: 1; background: #ccc; border: none; padding: 10px; border-radius: 5px;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="transactions" class="admin-section">
+                <h2 style="font-size: 2rem; color: #004d4d;">Booking History</h2>
+                <table>
+                    <thead>
+                        <tr><th>Ref</th><th>Passenger</th><th>Tier</th><th>Paid</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in bookings %}
+                        <tr>
+                            <td>#SKY{{ ticket.id }}</td>
+                            <td>{{ ticket.first_name }} {{ ticket.last_name }}</td>
+                            <td>{{ ticket.tier|capitalize }}</td>
+                            <td>PHP {{ "{:,.2f}".format(ticket.total_paid) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="users" class="admin-section">
+                <h2 style="font-size: 2rem; color: #004d4d;">User Directory</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th> </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.first_name }} {{ u.last_name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                <span class="status-pill {{ 'status-admin' if u.role == 'admin' else 'status-user' }}">
+                                    {{ u.role|upper }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if u.role != 'admin' and u.role != 'banned' %}
+                                <form action="{{ url_for('ban_user', user_id=u.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="submit-btn" 
+                                            style="background-color: #d9534f; padding: 5px 10px; font-size: 12px;"
+                                            onclick="return confirm('Are you sure you want to ban this user?')">
+                                        BAN
+                                    </button>
+                                </form>
+                                {% elif u.role == 'banned' %}
+                                <span style="color: #d9534f; font-weight: bold;">BANNED</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+            </div>
+
+            <div id="messages" class="admin-section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 2rem; color: #004d4d; margin: 0;">User Inquiries</h2>
+        <span class="status-pill status-user">{{ messages|length }} Pending</span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date Received</th>
+                <th>Sender Name</th>
+                <th>Topic</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for msg in messages %}
+            <tr>
+                <td style="color: #666;">{{ msg.timestamp.strftime('%b %d, %Y') }}</td>
+                <td>
+                    <div style="font-weight: bold; color: #004d4d;">{{ msg.first_name }} {{ msg.last_name }}</div>
+                    <small style="color: #888;">{{ msg.email }}</small>
+                </td>
+                <td>
+                    <span style="background: #eef; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; border: 1px solid #ccd;">
+                        {{ msg.topic }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-pill" style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba;">NEW</span>
+                </td>
+                <td>
+                    <button onclick="document.getElementById('msg-modal-{{ msg.id }}').showModal()" 
+                            style="background: #004d4d; color: gold; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.8rem; transition: 0.3s;">
+                        Open Message
+                    </button>
+                </td>
+            </tr>
+
+            <dialog id="msg-modal-{{ msg.id }}" style="width: 550px; border-radius: 15px; border: none; padding: 0; box-shadow: 0 10px 40px rgba(0,0,0,0.4); overflow: hidden;">
+                <div style="background: #004d4d; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; color: gold;">Message from {{ msg.first_name }}</h3>
+                    <small>{{ msg.timestamp.strftime('%I:%M %p') }}</small>
+                </div>
+                
+                <div style="padding: 25px; font-family: sans-serif;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 0.9rem;">
+                        <div><strong>Full Name:</strong> <br> {{ msg.first_name }} {{ msg.last_name }}</div>
+                        <div><strong>Email:</strong> <br> {{ msg.email }}</div>
+                        <div><strong>Phone:</strong> <br> {{ msg.phone or 'N/A' }}</div>
+                        <div><strong>Topic:</strong> <br> {{ msg.topic }}</div>
+                    </div>
+                    
+                    <div style="background: #f4f7f7; border-left: 4px solid gold; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                        <p style="margin-top: 0; font-weight: bold; color: #004d4d;">Message Body:</p>
+                        <p style="line-height: 1.5; color: #333;">{{ msg.message }}</p>
+                    </div>
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+                    <form action="{{ url_for('reply_message', msg_id=msg.id) }}" method="POST">
+                        <label style="font-weight: bold; font-size: 0.85rem;">Send a Reply:</label>
+                        <textarea name="reply_text" placeholder="Type your response to {{ msg.first_name }}..." required 
+                                  style="width: 100%; height: 100px; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; resize: none; font-family: inherit;"></textarea>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="submit" style="flex: 2; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                ✉ Send Reply
+                            </button>
+                            
+                            <button form="delete-form-{{ msg.id }}" type="submit" 
+                                    style="flex: 1; background: #dc3545; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold;"
+                                    onclick="return confirm('Ignore this inquiry? This will delete it permanently.')">
+                                🗑 Ignore
+                            </button>
+                            
+                            <button type="button" onclick="this.closest('dialog').close()" 
+                                    style="flex: 1; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                Close
+                            </button>
+                        </div>
+                    </form>
+
+                    <form id="delete-form-{{ msg.id }}" action="{{ url_for('delete_message', msg_id=msg.id) }}" method="POST" style="display: none;"></form>
+                </div>
+            </dialog>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, x, tablinks;
+            x = document.getElementsByClassName("admin-section");
+            for (i = 0; i < x.length; i++) {
+                x[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        function showEditForm(id, name, desc, cat) {
+            document.getElementById('editModal').style.display = 'flex';
+            document.getElementById('editForm').action = "/edit_destination/" + id;
+            document.getElementById('edit_name').value = name;
+            document.getElementById('edit_desc').value = desc;
+            document.getElementById('edit_cat').value = cat;
+        }
+    </script>
+</body>
+</html>

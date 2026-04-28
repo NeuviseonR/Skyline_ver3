@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyLine | Checkout</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='checkout.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='logo.png') }}" type="image/x-icon">
+
+    <style>
+        .seat { width: 40px; height: 40px; background: #ddd; cursor: pointer; border-radius: 5px; }
+        .seat.selected { background: #6b9a9d !important; color: white; }
+        .seat.occupied { background: #e74c3c !important; cursor: not-allowed; opacity: 0.6; }
+        .tier-box.disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+            opacity: 0.5;
+            pointer-events: none; /* Prevents the onclick function from firing */
+            border: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+<div class="nav">
+            <div class="logo"><h1>SkyLine</h1></div>
+
+            <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"></a></li>
+                <li class="nav-buttons"><a href="#">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3" style="width: 100%;"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                        
+                    </ul>
+                </li>
+
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+
+            <div class="nav-auth">
+                    {% if session['user_id'] %}
+                        <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                            <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                                Welcome, {{ session['first_name'] }}!
+                            </span>
+                            <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                        </div>
+                    {% else %}
+                        <button class="log-in">
+                            <a style="font-family: 'Bookman Old Style';" href="{{ url_for('login') }}">Log In</a>
+                        </button>
+                    {% endif %}
+            </div>
+   
+        </div>
+
+<div class="booking-wrapper">
+    <div class="nav-header">
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <div class="step-tabs">
+            <div class="tab active" id="t1">1. Class</div>
+            <div class="tab" id="t2">2. Passengers</div>
+            <div class="tab" id="t3">3. Details</div>
+            <div class="tab" id="t4">4. Seats</div>
+        </div>
+    </div>
+
+    <form id="master_booking_form" action="{{ url_for('process_booking', flight_id=flight.id) }}" method="POST">
+        
+        <input type="hidden" name="tier" id="hidden_tier">
+        <input type="hidden" name="total_amount" id="hidden_total">
+        <input type="hidden" name="selected_seat" id="hidden_seat">
+
+        <div class="step-content active" id="step1">
+            <h2>Select Your Cabin</h2>
+
+            <div class="tier-container">
+                <div class="tier-box {% if flight.tickets_economy <= 0 %}disabled{% endif %}" 
+                    {% if flight.tickets_economy > 0 %}onclick="setTier('economy', 0, {{ flight.tickets_economy }})"{% endif %}>
+                    <h3>Economy</h3>
+                    <p>Standard Legroom<br>2 Meals Included</p>
+                    <small>Left: {{ flight.tickets_economy }}</small>
+                </div>
+
+                <div class="tier-box {% if flight.tickets_business <= 0 %}disabled{% endif %}" 
+                    {% if flight.tickets_business > 0 %}onclick="setTier('business', 1000, {{ flight.tickets_business }})"{% endif %}>
+                    <h3>Business</h3>
+                    <p>More Legroom<br>+1,000 PHP</p>
+                    <small>Left: {{ flight.tickets_business }}</small>
+                </div>
+
+                <div class="tier-box {% if flight.tickets_first <= 0 %}disabled{% endif %}" 
+                    {% if flight.tickets_first > 0 %}onclick="setTier('first', 3000, {{ flight.tickets_first }})"{% endif %}>
+                    <h3>First Class</h3>
+                    <p>Full Privacy Screen<br>+3,000 PHP</p>
+                    <small>Left: {{ flight.tickets_first }}</small>
+                </div>
+            </div>
+
+            <div style="display: inline-flex; height: fit-content;"><p style="width: 145px; padding: 0;margin: 0;">I confirm my choice</p><input type="checkbox" id="c1" style="padding: 0; height: 20px; width:20px;"> </div>
+            <button type="button" class="back-btn" style="float:right; background:var(--primary); color:white;" onclick="nextStep(2)">Next</button>
+        </div>
+
+        <div class="step-content" id="step2">
+            <h2>How many passengers?</h2>
+            <input type="number" id="p_count" name="p_count" min="1" max="10" value="1">
+            <button type="button" class="back-btn" style="margin-top:20px; background:var(--primary); color:white;" onclick="setupPassengerForms()">Next</button>
+        </div>
+
+        <div class="step-content" id="step3">
+            <h2>Passenger Details</h2>
+            <p style="color:red;">Name must match your Passport/ID</p>
+            <div id="p_tabs_nav" style="margin-bottom:15px;"></div>
+            <div id="p_form_container"></div>
+            <button type="button" class="back-btn" style="background:var(--primary); color:white; margin-top:20px;" onclick="nextStep(4)">Next</button>
+        </div>
+
+        <div class="step-content" id="step4">
+            <h2>Choose Your Seat</h2>
+            <span style="display: inline-flex;"> <p style="width: 300px; margin: auto 0;">Random (Free)</p><input type="radio" name="smode" id="rnd" checked onclick="toggleSeatMap(false)"></span>
+            <br><br>
+            <span style="display: inline-flex;"> <p style="width: 300px; margin: auto 0;">Preferred (+300 PHP)</p><input type="radio" name="smode" id="prf" onclick="toggleSeatMap(true)"></span>
+            
+            <div id="seat_map_container" class="seat-grid" style="display:none;"></div>
+
+            <div style="text-align:right; margin-top:30px;">
+                <h3>Total: PHP <span id="final_total">0</span></h3>
+                <button type="button" class="pay-btn" onclick="openPayment()">PAY NOW</button>
+            </div>
+        </div>
+
+        <div id="payment_modal">
+            <div class="modal-content">
+                <h3>Finalize Booking</h3>
+                <p>You will be redirected to a secure PayMongo page to complete your payment.</p>
+                
+                <div style="margin: 20px 0; display: flex; flex-direction: column; gap: 10px;">
+                    <p><strong>Supported Methods:</strong></p>
+                    <p style="font-size: 0.9rem; color: #555;">GCash, Maya, Visa, Mastercard, and more.</p>
+                </div>
+
+                <button type="submit" class="pay-btn" style="margin-top:20px;">PROCEED TO PAYMENT</button>
+                
+                <button type="button" onclick="closePayment()" style="background:none; border:none; color:grey; width:100%; margin-top:10px; cursor:pointer;">Cancel</button>
+            </div>
+        </div>
+        
+    </form>
+</div>
+
+<script>
+    let currentStep = 1;
+    let basePrice = {{ flight.price }};
+    let tierAdd = 0;
+    let seatAdd = 0;
+    let currentTier = '';
+
+    function nextStep(n) {
+        if (n === 2 && (!currentTier || !document.getElementById('c1').checked)) {
+            alert("Please pick a tier and confirm."); return;
+        }
+        currentStep = n;
+        updateUI();
+    }
+
+    function goBack() {
+        if (currentStep > 1) { currentStep--; updateUI(); }
+        else { window.location.href = "{{ url_for('booking') }}"; }
+    }
+
+    function updateUI() {
+        document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('step' + currentStep).classList.add('active');
+        document.getElementById('t' + currentStep).classList.add('active');
+        updateTotal();
+    }
+
+    function setTier(tier, price, maxTickets) {
+        currentTier = tier;
+        tierAdd = price;
+        document.getElementById('hidden_tier').value = tier;
+        
+        // Update the max passengers allowed based on remaining tickets
+        const pInput = document.getElementById('p_count');
+        
+        // Set max to available tickets, capped at 10 (airline policy)
+        let absoluteMax = Math.min(maxTickets, 10);
+        pInput.max = absoluteMax;
+
+        // If the user previously typed 5 but now only 2 are available, reset to 2
+        if (parseInt(pInput.value) > absoluteMax) {
+            pInput.value = absoluteMax;
+        }
+        
+        // If no tickets are left (should be caught by 'disabled' class), set min/max to 0
+        if (maxTickets <= 0) {
+            pInput.value = 0;
+            pInput.min = 0;
+        } else {
+            pInput.min = 1;
+            if (pInput.value == 0) pInput.value = 1;
+        }
+
+        document.querySelectorAll('.tier-box').forEach(b => b.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        updateTotal();
+    }
+
+    function setupPassengerForms() {
+        const count = document.getElementById('p_count').value;
+        const nav = document.getElementById('p_tabs_nav');
+        const cont = document.getElementById('p_form_container');
+        nav.innerHTML = ''; cont.innerHTML = '';
+
+        for (let i = 1; i <= count; i++) {
+            let btn = document.createElement('button');
+            btn.type = "button";
+            btn.className = 'p-tab-btn' + (i===1 ? ' active' : '');
+            btn.innerText = `Pax ${i}`;
+            btn.onclick = () => {
+                // Update button colors
+                document.querySelectorAll('.p-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update form visibility
+                document.querySelectorAll('.p-form-unit').forEach(f => f.style.display = 'none');
+                document.getElementById(`pform_${i}`).style.display = 'block';
+            };
+            nav.appendChild(btn);
+
+            let div = document.createElement('div');
+            div.id = `pform_${i}`;
+            div.className = 'p-form-unit';
+            div.style.display = i === 1 ? 'block' : 'none';
+            div.innerHTML = `
+                <div class="form-row">
+                    <input type="text" name="first_name_${i}" placeholder="First Name" required>
+                    <input type="text" name="mi_${i}" placeholder="M.I." maxlength="1" style="width:60px;">
+                    <input type="text" name="last_name_${i}" placeholder="Last Name" required>
+                </div>
+                <div class="form-row">
+                    <input type="date" name="dob_${i}">
+                    <input type="text" name="nationality_${i}" placeholder="Nationality">
+                </div>
+                <div>
+                    <span style="display:inline-flex; height: fit-content;"> <p style="padding:0; width: 100px">Senior</p> <input type="checkbox" name="status_${i}" style="height: 20px; margin-top:18px;" value="Senior">
+                    <span style="display:inline-flex; height: fit-content;"> <p style="padding:0; width: 100px">Child</p> <input type="checkbox" name="status_${i}" style="height: 20px; margin-top:18px;" value="Child"> </span>
+                </div>
+            `;
+            cont.appendChild(div);
+        }
+        nextStep(3);
+    }
+
+
+
+    function toggleSeatMap(show) {
+        seatAdd = show ? 300 : 0;
+        document.getElementById('seat_map_container').style.display = show ? 'grid' : 'none';
+        if(show) renderMap();
+        updateTotal();
+    }
+
+    let selectedSeats = [];
+
+    function renderMap() {
+        const cont = document.getElementById('seat_map_container');
+        cont.innerHTML = '';
+        
+        // Create a counter display
+        const count = parseInt(document.getElementById('p_count').value);
+        const counterMsg = document.createElement('p');
+        counterMsg.id = "seat_counter_msg";
+        counterMsg.style.gridColumn = "1 / -1";
+        counterMsg.style.textAlign = "center";
+        counterMsg.innerText = `Please select ${count} seat(s). (Selected: 0/${count})`;
+        cont.appendChild(counterMsg);
+
+        let rows = currentTier === 'first' ? 5 : (currentTier === 'business' ? 10 : 20);
+        let sideSeats = currentTier === 'first' ? 1 : (currentTier === 'business' ? 2 : 3);
+        const letters = "ABCDEF".split("");
+        cont.style.gridTemplateColumns = `repeat(${sideSeats * 2 + 1}, 45px)`;
+
+        for (let r = 1; r <= rows; r++) {
+            let charIdx = 0;
+            for (let s = 0; s < sideSeats; s++) createSeat(cont, r, letters[charIdx++]);
+            let aisle = document.createElement('div'); aisle.className = 'aisle'; aisle.innerText = r; cont.appendChild(aisle);
+            for (let s = 0; s < sideSeats; s++) createSeat(cont, r, letters[charIdx++]);
+        }
+    }
+
+    
+    // This turns the Python list from your route into a JS array
+    const occupiedSeats = {{ occupied_seats|tojson }};
+
+   function createSeat(cont, r, c) {
+    let s = document.createElement('div');
+    s.className = 'seat';
+    
+    // Add class prefix: 'e' for economy, 'b' for business, 'f' for first
+    const tierPrefix = currentTier.charAt(0).toLowerCase(); 
+    let name = tierPrefix + r + c; 
+    
+    s.innerText = name;
+
+    // Check if this specific class-seat is taken
+    if (occupiedSeats.includes(name)) {
+        s.classList.add('occupied');
+    }
+
+    s.onclick = function() {
+        if (this.classList.contains('occupied')) {
+            alert("This seat is already taken.");
+            return;
+        }
+
+        const maxSeats = parseInt(document.getElementById('p_count').value);
+
+        if (this.classList.contains('selected')) {
+            this.classList.remove('selected');
+            selectedSeats = selectedSeats.filter(item => item !== name);
+        } else {
+            if (selectedSeats.length < maxSeats) {
+                this.classList.add('selected');
+                selectedSeats.push(name);
+            } else {
+                alert(`You can only select ${maxSeats} seats.`);
+            }
+        }
+
+        // Update hidden input with prefixed names
+        document.getElementById('hidden_seat').value = selectedSeats.join(',');
+        document.getElementById('seat_counter_msg').innerText = 
+            `Selected: ${selectedSeats.length}/${maxSeats}`;
+    };
+    cont.appendChild(s);
+}
+
+
+
+    function updateTotal() {
+    let count = parseInt(document.getElementById('p_count').value) || 1;
+    // seatAdd is only applied once per passenger if they chose Preferred
+    let total = (basePrice + tierAdd + seatAdd) * count;
+    document.getElementById('final_total').innerText = total.toLocaleString();
+    document.getElementById('hidden_total').value = total;
+    }
+
+    function openPayment() { document.getElementById('payment_modal').style.display = 'flex'; }
+    function closePayment() { document.getElementById('payment_modal').style.display = 'none'; }
+    function togglePayFields() {
+        const m = document.getElementById('pay_method').value;
+        document.getElementById('card_fields').style.display = m === 'card' ? 'block' : 'none';
+        document.getElementById('paypal_fields').style.display = m === 'paypal' ? 'block' : 'none';
+    }
+</script>
+</body>
+</html>

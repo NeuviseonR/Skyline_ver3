@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Assistance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='baggage.css') }}">
+
+</head>
+
+<!-- BODY -->
+    <body class="body">
+        <!-- NAVIGATIONS -->
+        <div class="nav">
+            <div class="logo"><h1>SkyLine</h1></div>
+
+            <ul class="nav-container">
+                <li class="nav-buttons"><a href="{{ url_for('index') }}">Home<hr class="n1"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('booking') }}">Bookings<hr class="n2"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('popular') }}">Popular<hr class="n3"></a></li>
+                <li class="nav-buttons">
+                    <a href="#">Travel info<hr class="n3" style="width: 100%;"></a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('baggage') }}">Baggage information</a></li>
+                        <li><a href="{{ url_for('payment') }}">Payment options</a></li>                          
+                        <li><a href="{{ url_for('bookinginfo') }}">Booking and Check-in</a></li>                     
+                        <li><a href="{{ url_for('specialassist') }}">Special Assistance</a></li>
+                        <li><a href="{{ url_for('policies') }}">Airline policies</a></li>                        
+                    </ul>
+                </li>
+
+                <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
+                <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
+            </ul>
+
+            <div class="nav-auth">
+                    {% if session['user_id'] %}
+                        <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                            <span class="user-name" style="color: white; font-family: 'Bookman Old Style'; font-weight: bold;">
+                                Welcome, {{ session['first_name'] }}!
+                            </span>
+
+                            <!-- For clickable avatar to booked flights page -->
+                            <a href="{{ url_for('bookedflights') }}" style="text-decoration: none;">
+                            <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            </a>
+                            
+                            <a href="{{ url_for('logout') }}" style="color: #ff4d4d; font-size: 0.7rem; text-decoration: none; text-transform: uppercase; font-family: sans-serif; font-weight: bold;">Logout</a>
+                        </div>
+                    {% else %}
+                        <button class="log-in">
+                            <a style="font-family: 'Bookman Old Style';" href="{{ url_for('login') }}">Log In</a>
+                        </button>
+                    {% endif %}
+                </div>
+        </div>
+       
+
+        <!-- BODY SECTION -->
+         <div class="headertext">            
+            <span style="text-align: center; font-size: 30px;"><h1>Special Assistance</h1></span>
+         </div>
+
+            
+        <div class="bagbody">
+            <div class="leftbag">
+                <h2 >Special Assistance</h2>
+                <a href="{{ url_for('specialassist') }}#guestneed">Guest Needing Special Assistance</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#mother">Expectant Mothers</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#minors">Unaccompanied Minors</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#young">Young Passengers</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#infant">Infants</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#medcase">Guests with Medical Case <br>and Portable Oxygen Concentrators (POC)</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#extraseat">Guests Requiring Extra Seat</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#prison">Prisoners</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#senior">Senior Citizen and Person <br>with Disability (PWD) and Person <br>with Reduced Mobility (PRM)</a><br>
+                <hr>
+                <a href="{{ url_for('specialassist') }}#serviceanimal">Service / Emotional Support Animals</a><br>
+                <hr>
+            </div>
+            <div class="rightbag">
+                <div class="info" id="guestneed">
+                    <h2>Guest Needing Special Assistance</h2>
+
+                    <p>Guests requiring special assistance are accepted for carriage, subject to coordination with Cebu Pacific at least (2) hours before the flight. Please refer to the guidelines below for details.</p>
+                    <p>In certain airports such as Macau, there is a minimal handling fee for the use of lifts for wheelchairs. Please inform us at least three (3) days prior the scheduled flight.</p>
+                    <p>For more information, feel free to contact us.</p>
+                </div>
+
+                <div class="info" id="mother">
+                    <h2>Expectant Mothers</h2>
+
+                    <p>On all flights, expectant mothers with age of gestation thirty-four (34) weeks and beyond, are required to present a medical certificate stating that the guest is “fit to travel” and signed by personal physician with his/her PRC number, and written or
+                    typed on the signing physician’s prescription pad or the hospital’s official document with letterhead. The expectant mother must complete her travel within the validity period of the medical certificate, which should be ten (10) days from date of issuance.
+                    </p>
+                    <p>Please inform us by declaring this when you book a flight.</p>
+                </div>
+
+                <div class="info" id="minors">
+                    <h2>Unaccompanied Minors</h2>
+
+                    <p>Children below 7 years old by the date of travel will not be accepted for carriage without an accompanying adult.</p>
+
+                    <p>For flights within the Philippines, children aged 7 to below 12 years old travelling alone are considered Unaccompanied Minors. They may be accepted for carriage, only after the Passenger Handling Form is accomplished and submitted at least 24 hours before the flight, and the prescribed Unaccompanied Minor Handling Fee is paid. We do not accept unaccompanied minors on flights outside the Philippines. Unaccompanied Minors who require Portable Oxygen Concentrators (POC) will not be accepted for flight.</p>
+
+                    <p>Filipino minors (below 18 years old) traveling with companions who are not their parents/legal guardians are considered Accompanied Minors and must take note of additional requirements from the Department of Social Welfare and Development (DSWD). Please check the rules governing minor travel, as issued by DSWD. For minors with foreign nationalities, please check the rules governing minor travel as issued by your respective governments.</p>
+
+                    <p>Please inform us by declaring this when you book a flight.</p>
+                </div>
+
+                <div class="info" id="young">
+                    <h2>Young Passengers</h2>
+
+                    <p>Young Passengers are minors aged between 12 years old to 17 years old. For Domestic Flights, these young 
+                        passengers are allowed to travel unaccompanied; however, all passengers below 18 years old traveling to 
+                        and from Davao and traveling unaccompanied or with companions who are not their parents/legal guardians 
+                        must secure a permit to travel from the City Social Welfare and Development Office (CSWDO) prior to the flight. 
+                        This is in compliance with the Davao City Children’s Welfare Code.</p>
+
+                    <p>For International Flights, a young passenger traveling unaccompanied and holding a Philippine Passport must also 
+                        present a travel clearance from the Department of Social Welfare and Development (DSWD) upon check-in. On the other 
+                        hand, young passengers aged between 12 to 14 years old, who are not Philippine residents and do not hold a Philippine 
+                        Passport must present an Affidavit of Consent (notarized or with attached copies of the parent/s passport) for Waiver 
+                        of Exclusion Ground (WEG) in addition to the required travel documents. This is applicable to flights going to the Philippines.</p>
+                </div>
+
+                <div class="info" id="infant">
+                    <h2>Infants</h2>
+
+                    <p>Infants that may be accepted for carriage are those between 8 days old and below 2 years of age, accompanied by an adult passenger. Infants below 8 days old will not be accepted for carriage. Guests travelling with infants between 8 days old and below 2 years of age must also present the infant’s birth certificate, baby book, or valid ID upon check-in and boarding.</p>
+                    <p>Infants shall sit on the adult passenger’s lap. The passenger may also purchase a seat for the infant and provide a Child Restraint System approved by the Federal Aviation Administration (FAA) or one that conforms to all applicable Federal Motor Vehicle Safety Standards (FMVSS) or any SRS certified by any Civil Aviation Authority (CAA). CARES, a harness-type safety device is also an approved alternative. It is designed specifically for aviation use, for children who are at least one (1) year old, weighing between 22-44 pounds.</p>
+                    <p>Mothers who are traveling with infants must present a medical certificate, if the birth was recent. Note that the medical certificate should state that the guest is “fit to travel” and signed by personal physician with his/her PRC number, and written or typed on the signing physician’s prescription pad or the hospital’s official document with letterhead.</p>
+                    <p>Please inform us by declaring this when you book a flight. For more information, feel free to contact us.</p>
+                </div>
+
+                <div class="info" id="medcase">
+                    <h2>Guests with Medical Case and Portable Oxygen Concentrators (POC)</h2>
+                
+                    <p>Guests with medical cases (i.e. recent surgeries) are allowed for carriage as long as they provide a medical certificate stating that the guest is “fit to travel” and signed by personal physician with his/her PRC number, and written or typed on the signing physician’s prescription pad or the hospital’s official document with letterhead. Medical certificate for guest requiring Portable Oxygen Concentrator (POC) should also indicate that the guest may be required to use respiratory assistive device for the duration of the flight.</p>
+                    <p>Cebu Pacific allows the carriage of a POC and other battery-operated non-oxygen generating respiratory assistive devices such as nebulizers and ventilators for use inside the cabin. However, it does not allow carriage of partially or completely filled oxygen tanks (cylinders/bottles) or liquid oxygen on board any aircraft. Also, Cebu Pacific does not accept Unaccompanied Minors who require POCs.</p>
+                    <p>Guests traveling with a respiratory assistive device must check-in at least two (2) hours before the flight and present the POC and other respiratory assistive device and paperwork to a Cebu Pacific check-in agent.</p>
+                    <p>Please inform us by declaring this when you book a flight.</p>
+                </div>
+
+                <div class="info" id="extraseat">
+                    <h2>Guests Requiring Extra Seat</h2>
+
+                    <p>Our seats range from 16.7 inches to 17.3 inches. Guests of size or guests needing space for their standard-sized carry-on baggage are requested to book two seats for a more comfortable flight.</p>
+                </div>
+
+                <div class="info" id="prison">
+                    <h2>Prisoners</h2>
+
+                    <p>A maximum of two (2) prisoners may be accepted per domestic flight for A320 and A330 aircraft and only one (1) prisoner per domestic flight on ATRs. It is mandatory that for every prisoner, at least one (1) security officer from the PNP or NBI is present.
+                    </p>
+                    <p>The special handling must be arranged with Cebu Pacific at least 24 hours before the flight.</p>
+                </div>
+
+                <div class="info" id="senior">
+                    <h2>Senior Citizen and Person with Disability (PWD) and Person with Reduced Mobility (PRM)</h2>
+                    <p>Filipino nationals at least sixty (60) years old & above, Person with Disability, and Person with Reduced Mobility are entitled to 20% discount on the base fare and VAT exemption on flights within the Philippines.</p>
+                    <p>Senior Citizens and PRMs/PWDs are encouraged to book their flight online.</p>
+                    <p>The Senior Citizen and PWD discount does not apply to:</p>
+                    <ul>
+                        <li>Promotional fares with discount higher than 20% of the lowest Go fare</li>
+                        <li>Add-ons such as baggage allowance or inflight meals</li>
+                        <li>International flights or connecting flights with international sector (Domestic to International and/or International to Domestic)</li>
+                    </ul>
+                    <p>For Senior Citizens, presentation of a Senior Citizen ID (OSCA ID) or a valid government-issued ID bearing the name, picture, date of birth, nationality of the Senior Citizen is required upon check-in or boarding.</p>
+                    <p>For PWDs or PRMs, presentation of a valid ID issued by the National Council on Disability Affairs (NCDA) or a local government unit is required upon check-in or boarding. Please visit the National Council on Disability Affairs for more information.</p>
+                </div>
+
+                <div class="info" id="serviceanimal">
+                    <h2>Service / Emotional Support Animals</h2>
+                    <p>Service / Emotional Support Animals may be accepted for carriage in the cabin provided:</p>
+                    <ul>
+                        <li>There should be only one (1) Service / Emotional Support Animal per passenger, per flight. Please make sure to declare this upon booking your flight to ensure that they can be accepted for carriage.</li>
+                        <li>The Service Animal / Emotional Support Animal must be a dog.</li>
+                        <li>For Service Animals:
+                            <ul>
+                                <li>Make sure they are securely leashed at all times.</li>
+                                <li>They are not required to wear a mouth-restraint device (i.e., muzzle, mouthguard, mouth cover, collar).</li>
+                            </ul>
+                        </li>
+                        <li>For Emotional Support Animals:
+                            <ul>
+                                <li>Make sure the soft carrier is compact enough to fit under the seat (approx. 8in x 8in x 14in).</li>
+                                <li>If inside a soft carrier, a leash and mouth-restraint device are not required.</li>
+                                <li>If outside a soft carrier, both a leash and mouth-restraint device are required.</li>
+                            </ul>
+                        </li>
+                        <li>The owner must make sure the dog is equipped with pet diapers.</li>
+                        <li>For all flights, the owner must bring moisture-absorbent material (e.g. absorbent plastic-backed pads) and is responsible for cleaning up after their Service / Emotional Support Animal. Otherwise, a document showing that the animal does not need to relieve itself for the duration of the flight will suffice.</li>
+                        <li>The owner assumes full responsibility for any required clearances from the appropriate government authorities.</li>
+                        <li>The following documents confirming that the Service / Emotional Support Animal has been trained to an acceptable level must be presented upon check-in:
+                            <ul>
+                                <li>Complete and updated vaccination papers</li>
+                                <li>Document confirming the Service Animal has been trained.</li>
+                                <li>Document confirming the Emotional Support Animal has been trained and/or document with letterhead from a mental health professional stating that the guest has a mental disability</li>
+                                <li>Shipping permit issued by the Bureau of Animal Industry - Department of Agriculture</li>
+                            </ul>
+                        </li>
+                        <li>Upon check-in, the owner must also present documentation that stipulates their need for the Service / Emotional Support Animal from their medical doctor.</li>
+                        <li>The Service / Emotional Support Animal will not occupy a seat.</li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+        <!-- FOOTER SECTION -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="logo">
+            <strong>AV</strong>
+        </div>
+        
+        <nav class="footer-nav">
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+        <h2>Alta Volare! &#9992;</h2>
+        <p>&copy; 2026 All Rights Reserved.</p>
+    </div>
+</footer>
+    </body>
+</html>

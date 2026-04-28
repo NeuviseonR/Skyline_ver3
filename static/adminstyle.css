@@ -1,0 +1,114 @@
+/* {
+    
+} */
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+.header {
+    background-color: rgb(42, 148, 148);
+    font-family: 'Franklin Gothic Medium';
+     width: 100%;
+     height: 100px;
+     position:fixed;
+     z-index: 5000;
+     box-shadow: -3px 4px 15px rgba(1, 70, 66, 0.63);
+     margin: 0;
+     padding: 0;
+}
+.nav {
+    background-color: rgb(133, 204, 174);
+    font-family: 'Franklin Gothic Medium';
+    margin: 0;
+    padding: 0;
+    ul{
+        display: flex;
+        flex-direction: column;
+        list-style: none;
+        width: 200px;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+    }   
+}
+.nav a{
+        text-decoration: none;
+        color: black;
+    } 
+
+.major {
+        padding-left: 10px;
+        padding-top: 30px;
+        font-size: 23px;
+    } 
+.minor {
+        padding-left: 30px;
+        padding-bottom: 5px;
+        font-size: 16px;        
+    } 
+
+.admin-form-container { 
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.479);
+    border-radius: 8px;
+    font-family: sans-serif; }
+       
+.form-row { 
+    display: flex; 
+    justify-content: space-between;
+    gap: 10px; 
+    margin-bottom: 15px; }
+
+.form-group { 
+    flex: 1;
+    display: flex; 
+    flex-direction: column; }
+
+label { font-weight: bold; 
+    margin-bottom: 5px; }
+
+input, select { 
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; }
+
+.submit-btn { 
+    width: 100%; 
+    padding: 15px; 
+    background: #007bff; 
+    color: white; border: 
+    none; border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 16px; 
+    margin: 30px 255px;
+    width: 300px; }
+
+.submit-btn:hover { 
+    background: #0056b3; 
+    }
+
+.buttons12 { 
+    background-color: #ffffff;
+    display: flex;
+    width: fit-content;
+    height: fit-content;
+    padding: 15px 8px;
+    gap: 10px;
+    a { 
+     background-color: #7accb1;
+     padding: 10px;
+     width: fit-content;
+     height: fit-content;
+     text-decoration: none;
+     color: black;
+     font-family: 'Franklin Gothic Medium';
+     border-radius: 10px
+    }
+    a:hover {
+        background-color: #5fac9f;
+    }
+    }
