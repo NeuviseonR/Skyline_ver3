@@ -12,7 +12,6 @@
         .ticket-left { flex: 3; padding: 20px; position: relative; border-right: 4px dashed #a7a7a7; }
         .ticket-right { flex: 1; background: #b8d8d8; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative; }
         
-        /* Decorative punch hole */
         .ticket-right::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 25px; height: 25px; background: #fff; border-radius: 50%; box-shadow: inset 3px 3px 5px rgba(1, 1, 59, 0.589);}
 
         .flight-path { display: flex; align-items: center; gap: 15px; margin: 10px 0; }
@@ -22,8 +21,7 @@
         .trip-tag { position: absolute; top: 10px; right: 20px; font-size: 12px; font-weight: bold; }
         .booking-wrapper {background-color: rgba(255, 255, 255, 0.507); border-radius: 25px; display: flex; max-width: 1200px; margin: 50px auto; gap: 20px; padding: 20px;}
         .search-sidebar { flex: 1; background: #f8f9fa; padding: 20px; border-radius: 25px; height: fit-content; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); border: solid black 1px;}
-        .ticket-container { flex: 3; margin-top: 0; } /* Overriding previous margin */
-        /* Form styling */
+        .ticket-container { flex: 3; margin-top: 0; } 
         .filter-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
         .filter-group label { font-weight: bold; font-size: 14px; }
         .filter-group select, .filter-group input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
@@ -52,7 +50,6 @@
                 <li class="nav-buttons"><a href="{{ url_for('about') }}#about">About Us<hr class="n4"></a></li>
                 <li class="nav-buttons"><a href="{{ url_for('contact') }}#contact">Contacts<hr class="n5"></a></li>
             </ul>
-            <!-- added code for the session account-->
             <div class="nav-auth">
                 {% if session['user_id'] %}
                     <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
@@ -60,7 +57,7 @@
                             Welcome, {{ session['first_name'] }}!
                         </span>
                         
-                        <!-- For clickable avatar to booked flights page -->
+                        
                         <a href="{{ url_for('bookedflights') }}" style="text-decoration: none;">
                         <div class="avatar-circle" style="width: 38px; height: 38px; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             <svg viewBox="0 0 24 24" fill="#555" width="24px" height="24px">

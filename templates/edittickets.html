@@ -27,7 +27,6 @@
         const cityData = {{ city_data_json | safe if city_data_json else '{}' }};
         let schedules = [];
 
-        // Load existing schedules from the database on page load
         window.onload = function() {
             toggleReturn();
             const existingData = '{{ flight.ret_date | safe }}';
@@ -175,7 +174,6 @@
                     </div>
                 </div>
 
-                <!-- DYNAMIC RETURN SECTION -->
                 <div id="return-section" style="display: {{ 'block' if flight.trip_type == 'round trip' else 'none' }}; margin-bottom: 20px;">
                     <div style="background: rgba(255,255,255,0.3); padding: 15px; border-radius: 8px;">
                         <label><strong>Add Return Schedules</strong></label>
@@ -186,15 +184,15 @@
                         </div>
                         
                         <div id="schedule_bubbles" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
-                            <!-- Bubbles injected by JS -->
+                            
                         </div>
                         
-                        <!-- Hidden input to send JSON data to app.py -->
+                        
                         <input type="hidden" name="ret_date" id="return_schedules_data" value="{{ flight.ret_date }}">
                     </div>
                 </div>
 
-                <!-- Tickets and Pricing -->
+                
                 <div class="form-row">
                     <div class="form-group">
                         <label>Economy</label>

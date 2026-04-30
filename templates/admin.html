@@ -7,12 +7,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <style>
-        /* 1. Page-Specific Background */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            box-sizing: border-box; /* Ensures padding doesn't increase width */
+            box-sizing: border-box; 
         }
 
         *, *:before, *:after {
@@ -33,21 +32,21 @@
             width: 100%;
         }
 
-        /* 2. Wrapper Layout - Fixed width calculation */
+       
         .admin-wrapper { 
             display: flex; 
             width: 100%;
-            max-width: 1400px; /* Limits growth on ultra-wide screens */
+            max-width: 1400px;
             margin: 40px auto; 
             gap: 20px; 
             padding: 0 20px; 
             flex: 1;
-            align-items: flex-start; /* Prevents sidebar from stretching to table height */
+            align-items: flex-start; 
         }
         
-        /* 3. Sidebar - Using flex-basis for stability */
+        
         .admin-sidebar { 
-            flex: 0 0 280px; /* Fixed width sidebar */
+            flex: 0 0 280px; 
             background: rgba(0, 77, 77, 0.9); 
             border-radius: 15px; 
             padding: 25px; 
@@ -63,7 +62,7 @@
             padding-bottom: 10px; 
         }
         
-        /* 4. Navigation Buttons */
+        
         .tab-btn { 
             width: 100%; 
             padding: 15px; 
@@ -82,10 +81,10 @@
         .tab-btn:hover { background: rgba(255, 215, 0, 0.2); }
         .tab-btn.active { background: gold; color: black; }
 
-        /* 5. Content Area - Takes remaining space */
+        
         .admin-content { 
             flex: 1; 
-            min-width: 0; /* Important: allows table to shrink if screen is small */
+            min-width: 0; 
         }
 
         .admin-section { 
@@ -95,7 +94,7 @@
             border-radius: 15px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
             min-height: 700px; 
-            overflow-x: auto; /* Adds scrollbar to table if it overflows */
+            overflow-x: auto; 
         }
         .admin-section.active { display: block; animation: fadeIn 0.4s; }
 

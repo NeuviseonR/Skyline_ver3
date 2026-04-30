@@ -12,7 +12,6 @@
         .ticket-left { flex: 3; padding: 20px; position: relative; border-right: 4px dashed #a7a7a7; }
         .ticket-right { flex: 1; background: #b8d8d8; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative; }
         
-        /* Decorative punch hole */
         .ticket-right::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 25px; height: 25px; background: #fff; border-radius: 50%; box-shadow: inset 3px 3px 5px rgba(1, 1, 59, 0.589);}
 
         .flight-path { display: flex; align-items: center; gap: 15px; margin: 10px 0; }
@@ -75,14 +74,12 @@
         <h2>SkyLine</h2>
         <span class="trip-tag">BOARDING PASS</span>
 
-        <!-- START: Round Trip Section -->
         {% if ticket.flight.trip_type == 'round trip' %}
         <div style="position: absolute; top: 45px; right: 20px; text-align: right;">
             <h1 style="color: #d49f91; margin: 0; font-size: 1.5rem; letter-spacing: 2px;">ROUND TRIP</h1>
             <small style="color: #666; font-weight: bold;">RETURN: {{ ticket.return_date }}</small>
         </div>
         {% endif %}
-        <!-- END: Round Trip Section -->
 
         <div class="flight-path">
             <div style="text-align:center">
@@ -114,7 +111,6 @@
                 <small style="text-transform: uppercase; font-size: 10px; color: #666;">Seat</small><br>
                 <strong>{{ ticket.seat_number }}</strong>
             </div>
-            <!-- Added Random Gate Number -->
             <div>
                 <small style="text-transform: uppercase; font-size: 10px; color: #666;">Gate</small><br>
                 <strong>{{ range(1, 25)|random }}{{ ['A', 'B', 'C']|random }}</strong>

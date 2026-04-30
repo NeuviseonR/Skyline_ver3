@@ -16,7 +16,7 @@
             background: #f0f0f0;
             cursor: not-allowed;
             opacity: 0.5;
-            pointer-events: none; /* Prevents the onclick function from firing */
+            pointer-events: none; 
             border: 1px dashed #ccc;
         }
     </style>
@@ -135,7 +135,7 @@
             
             <div id="seat_map_container" class="seat-grid" style="display:none;"></div>
 
-            <!-- Inside <div class="step-content" id="step4"> -->
+            
             <div id="senior-benefits-list" style="display:none; background: #fff9e6; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <h4 style="color: #856404; margin-top: 0;">✨ Senior Citizen Benefits Applied</h4>
                 <ul style="font-size: 0.9rem; color: #856404; padding-left: 20px;">
@@ -205,19 +205,19 @@
         tierAdd = price;
         document.getElementById('hidden_tier').value = tier;
         
-        // Update the max passengers allowed based on remaining tickets
+        
         const pInput = document.getElementById('p_count');
         
-        // Set max to available tickets, capped at 10 (airline policy)
+        
         let absoluteMax = Math.min(maxTickets, 10);
         pInput.max = absoluteMax;
 
-        // If the user previously typed 5 but now only 2 are available, reset to 2
+        
         if (parseInt(pInput.value) > absoluteMax) {
             pInput.value = absoluteMax;
         }
         
-        // If no tickets are left (should be caught by 'disabled' class), set min/max to 0
+        
         if (maxTickets <= 0) {
             pInput.value = 0;
             pInput.min = 0;
@@ -236,14 +236,14 @@
     const nav = document.getElementById('p_tabs_nav');
     const cont = document.getElementById('p_form_container');
     
-    // Check trip type from the Python-passed flight object[cite: 7]
+    
     const tripType = "{{ flight.trip_type }}";
     let returnHtml = "";
 
-    // Step 3 Requirement: Show return flight picker ONLY for round trips[cite: 6]
+    
     if (tripType === "round trip") {
         try {
-            // Parse the JSON string stored in flight.ret_date[cite: 7]
+            
             const returnSchedules = JSON.parse('{{ flight.ret_date | safe }}');
             
             returnHtml = `
@@ -263,14 +263,12 @@
             returnHtml = `<p style="color:red;">Error loading return dates.</p>`;
         }
     }
-
-    // Reset containers[cite: 7]
     nav.innerHTML = ''; 
-    cont.innerHTML = returnHtml; // Inject return picker (if any) at the top[cite: 6]
+    cont.innerHTML = returnHtml; 
 
-    // Create Passenger Tabs and Forms[cite: 7]
+    
     for (let i = 1; i <= count; i++) {
-        // Create the Tab Button
+        
         let btn = document.createElement('button');
         btn.type = "button";
         btn.className = 'p-tab-btn' + (i === 1 ? ' active' : '');
@@ -283,7 +281,7 @@
         };
         nav.appendChild(btn);
 
-        // Create the Form Unit
+        
         let div = document.createElement('div');
         div.id = `pform_${i}`;
         div.className = 'p-form-unit';
@@ -314,7 +312,7 @@
         cont.appendChild(div);
     }
     
-    nextStep(3); // Move to the Details view[cite: 7]
+    nextStep(3); 
 }
 
     function toggleSeatMap(show) {
@@ -325,7 +323,7 @@
         if(show) {
             renderMap();
         } else {
-            // Clear selected seats so backend knows to trigger the random assigner
+            
             selectedSeats = [];
             document.getElementById('hidden_seat').value = "";
         }
@@ -341,7 +339,7 @@
         const cont = document.getElementById('seat_map_container');
         cont.innerHTML = '';
         
-        // Create a counter display
+        
         const count = parseInt(document.getElementById('p_count').value);
         const counterMsg = document.createElement('p');
         counterMsg.id = "seat_counter_msg";
@@ -364,7 +362,7 @@
     }
 
     
-    // This turns the Python list from your route into a JS array
+    
     const occupiedSeats = {{ occupied_seats|tojson }};
 
    function createSeat(cont, r, c) {
@@ -374,10 +372,10 @@
     
     let seatId = r + c;
     
-    // STEP 4 FIX: Remove letters before the number for the grid display
-    s.innerText = `${r}${c}`; // Display label: e.g., '1A'
+    
+    s.innerText = `${r}${c}`; 
 
-    // TIER CHECK FIX: Reference the specific tier array from the dictionary[cite: 8]
+    
     const occupiedInCurrentTier = occupiedSeats[currentTier] || [];
 
     if (occupiedInCurrentTier.includes(seatId)) {
@@ -422,7 +420,7 @@
     for (let i = 1; i <= count; i++) {
         let passengerTotal = basePerPerson;
         
-        // Check if Senior is selected for this passenger
+        
         let statusElements = document.getElementsByName(`status_${i}`);
         let selectedStatus = "";
         
@@ -431,14 +429,14 @@
         });
 
         if (selectedStatus === "Senior") {
-            passengerTotal = basePerPerson * 0.80; // 20% Discount
+            passengerTotal = basePerPerson * 0.80; 
             hasSenior = true;
         }
         
         grandTotal += passengerTotal;
     }
 
-    // Show/Hide benefits list based on whether a senior is present
+    
     if (seniorBenefitsDiv) {
         seniorBenefitsDiv.style.display = hasSenior ? 'block' : 'none';
     }
@@ -454,24 +452,24 @@
         document.getElementById('paypal_fields').style.display = m === 'paypal' ? 'block' : 'none';
     }
 
-    // Add this inside your <script> tag in checkout.html
+    
 window.onload = function() {
     const restored = {{ restored_data|tojson|safe if restored_data else 'null' }};
     
     if (restored) {
-        // 1. Restore Tier
+        
         if (restored.tier) {
-            // Find the tier box and click it to trigger styles/logic
+            
             const tierBox = document.querySelector(`.tier-box[onclick*="${restored.tier}"]`);
             if (tierBox) tierBox.click();
         }
 
-        // 2. Restore Passenger Count and trigger form generation
+        
         if (restored.p_count) {
             document.getElementById('p_count').value = restored.p_count;
-            setupPassengerForms(); // This generates the inputs
+            setupPassengerForms(); 
             
-            // 3. Fill in the generated inputs
+            
             setTimeout(() => {
                 for (let i = 1; i <= restored.p_count; i++) {
                     document.querySelector(`[name="first_name_${i}"]`).value = restored[`first_name_${i}`] || '';
@@ -479,7 +477,7 @@ window.onload = function() {
                     document.querySelector(`[name="dob_${i}"]`).value = restored[`dob_${i}`] || '';
                     document.querySelector(`[name="nationality_${i}"]`).value = restored[`nationality_${i}`] || '';
                     
-                    // Restore Status (Adult/Senior/Child)
+                    
                     const statusVal = restored[`status_${i}`];
                     if (statusVal) {
                         const radio = document.querySelector(`[name="status_${i}"][value="${statusVal}"]`);
@@ -487,12 +485,12 @@ window.onload = function() {
                     }
                 }
                 
-                // If round trip, restore return selection
+                
                 if (restored.selected_return) {
                     document.querySelector('[name="selected_return"]').value = restored.selected_return;
                 }
                 
-                // Move the user to Step 3 so they see their data is back
+                
                 nextStep(3);
             }, 100); 
         }

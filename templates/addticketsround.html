@@ -25,7 +25,6 @@
     </style>
 
     <script>
-        // all the countires in the options
         const cityData = {
             "Afghanistan": ["Kabul (KBL)", "Kandahar (KDH)", "Herat (HEA)"],
             "Albania": ["Tirana (TIA)"],
@@ -145,7 +144,6 @@
         schedules.push(entry);
         renderBubbles();
         
-        // Clear inputs
         dateInput.value = "";
         timeInput.value = "";
     }
@@ -170,7 +168,6 @@
             container.appendChild(bubble);
         });
 
-        // Update the hidden input with JSON string for the backend
         hiddenInput.value = JSON.stringify(schedules);
     }
         
@@ -249,10 +246,8 @@
                                 <button type="button" onclick="addSchedule()" style="padding: 5px 15px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">+ Add</button>
                             </div>
                             
-                            <!-- This container holds the bubbles -->
                             <div id="schedule_bubbles" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"></div>
                             
-                            <!-- Hidden input to send data to Python -->
                             <input type="hidden" name="return_schedules_data" id="return_schedules_data">
                         </div>
                     </div>

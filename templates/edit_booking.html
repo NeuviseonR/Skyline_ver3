@@ -45,7 +45,6 @@
     </div>
 
     <script>
-        // Only run seat map logic if the element exists
         const seatMapCont = document.getElementById('seat_map_container');
         if (seatMapCont) {
             const currentTier = "{{ booking.tier }}";
@@ -66,7 +65,6 @@
                 }
             }
 
-            // Convert the Python list to a JavaScript array
         const occupiedSeats = {{ occupied_seats|tojson }};
 
         function createEditSeat(r, c) {
@@ -75,7 +73,6 @@
             let name = r + c;
             s.innerText = name;
             
-            // Check if seat is in the occupied list
             if (occupiedSeats.includes(name)) {
                 s.classList.add('occupied');
             } else if (name === currentSeat) {
@@ -83,7 +80,6 @@
             }
             
             s.onclick = function() {
-                // Prevent clicking if occupied
                 if (this.classList.contains('occupied')) {
                     alert("This seat is already taken by another passenger.");
                     return;
