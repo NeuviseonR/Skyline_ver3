@@ -4,7 +4,26 @@
     <meta charset="UTF-8">
     <title>SkyLine Admin | Add Flights</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='adminstyle.css') }}">
+ 
     
+    <style>
+        .schedule-bubble {
+            background: #478294;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        .remove-bubble {
+            cursor: pointer;
+            font-weight: bold;
+            color: #ffcccc;
+        }
+    </style>
+
     <script>
         // all the countires in the options
         const cityData = {
@@ -106,6 +125,54 @@
             }
         }
 
+        let schedules = [];
+
+    function addSchedule() {
+        const dateInput = document.getElementById('temp_ret_date');
+        const timeInput = document.getElementById('temp_ret_time');
+        
+        if (!dateInput.value || !timeInput.value) {
+            alert("Please select both date and time");
+            return;
+        }
+
+        const entry = {
+            date: dateInput.value,
+            time: timeInput.value,
+            id: Date.now()
+        };
+
+        schedules.push(entry);
+        renderBubbles();
+        
+        // Clear inputs
+        dateInput.value = "";
+        timeInput.value = "";
+    }
+
+    function removeSchedule(id) {
+        schedules = schedules.filter(s => s.id !== id);
+        renderBubbles();
+    }
+
+    function renderBubbles() {
+        const container = document.getElementById('schedule_bubbles');
+        const hiddenInput = document.getElementById('return_schedules_data');
+        
+        container.innerHTML = "";
+        schedules.forEach(s => {
+            const bubble = document.createElement('div');
+            bubble.className = 'schedule-bubble';
+            bubble.innerHTML = `
+                ${s.date} @ ${s.time}
+                <span class="remove-bubble" onclick="removeSchedule(${s.id})">×</span>
+            `;
+            container.appendChild(bubble);
+        });
+
+        // Update the hidden input with JSON string for the backend
+        hiddenInput.value = JSON.stringify(schedules);
+    }
         
     </script>
 </head>
@@ -127,8 +194,9 @@
                             <label>From Country</label>
                             <select id="from_country" name="from_country" onchange="updateCities('from_country', 'from_city')" required>
                                 <option value="">Select Country</option>
-                                <option value="Afghanistan">Afghanistan</option>
-                                <option value="Vietnam">Vietnam</option>
+                                {% for country in countries %}
+                                <option value="{{ country }}">{{ country }}</option>
+                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
@@ -144,8 +212,9 @@
                             <label>To Country</label>
                             <select id="to_country" name="to_country" onchange="updateCities('to_country', 'to_city')" required>
                                 <option value="">Select Country</option>
-                                <option value="Afghanistan">Afghanistan</option>
-                                <option value="Vietnam">Vietnam</option>
+                                {% for country in countries %}
+                                <option value="{{ country }}">{{ country }}</option>
+                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
@@ -171,15 +240,21 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Return Date</label>
-                            <input type="date" name="ret_date" required>
+                    <div class="form-row" style="background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <div style="width: 100%;">
+                            <label><strong>Add Return Schedules</strong></label>
+                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                <input type="date" id="temp_ret_date" class="form-control">
+                                <input type="time" id="temp_ret_time" class="form-control">
+                                <button type="button" onclick="addSchedule()" style="padding: 5px 15px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">+ Add</button>
+                            </div>
+                            
+                            <!-- This container holds the bubbles -->
+                            <div id="schedule_bubbles" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"></div>
+                            
+                            <!-- Hidden input to send data to Python -->
+                            <input type="hidden" name="return_schedules_data" id="return_schedules_data">
                         </div>
-                        <div class="form-group">
-                            <label>Return Time</label>
-                            <input type="time" name="ret_time" required>
-                        </div>                        
                     </div>
 
                     <div class="form-row">

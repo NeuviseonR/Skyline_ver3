@@ -191,7 +191,7 @@
                             <div><strong>DEPART</strong></div>
                             <div style="text-align:center">{{ flight.dep_time }}<br><small>{{ flight.from_city }}</small></div>
                             <div class="line"></div>
-                            <div style="position:absolute; left:50%; transform:translateX(-50%); font-size:12px; margin-top:20px;">{{ flight.duration }} hrs</div>
+                            <div style="position:absolute; left:50%; transform:translateX(-50%); font-size:12px; margin-top:20px;">{{ flight.duration }}</div>
                             <div style="text-align:center">&#9992;</div>
                             <div class="line"></div>
                             <div style="text-align:center">{{ calc_arrival(flight.dep_time, flight.duration) }}<br><small>{{ flight.to_city }}</small></div>
@@ -222,8 +222,8 @@
                         </div>
                         
                         <hr style="margin-top:20px; border: 0; border-top: 1px solid #999;">
-                        <p style="font-size:14px">Depart Date: {{ flight.dep_date }} {% if flight.trip_type == "round trip" %}&nbsp;&nbsp;&nbsp; Return Date: {{ flight.ret_date }}{% endif %}</p>
-                    </div>
+                        <p style="font-size:14px">Depart Date: {{ flight.dep_date }}</p> 
+                   </div>
 
                     <div class="ticket-right">
                         <div>

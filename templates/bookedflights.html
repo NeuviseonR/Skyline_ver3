@@ -67,87 +67,103 @@
 <div class="booking-wrapper">
         <div class="ticket-container">
             <h2 style="font-family: 'Bookman Old Style'; margin-bottom: 20px; text-align: center;">My Purchased Tickets</h2>
+
             
-                    {% for ticket in purchased_tickets %}
-    <div class="ticket-card" style="{% if 'Delayed' in ticket.flight.status %} background: #fff9f0; {% elif ticket.flight.status == 'REFUNDED' %} background: #fff0f0; opacity: 0.9; {% endif %}">
-        <div class="ticket-left">
-            <h2>SkyLine</h2>
-            <span class="trip-tag">BOARDING PASS</span>
+{% for ticket in purchased_tickets %}
+<div class="ticket-card" style="{% if 'Delayed' in ticket.flight.status %} background: #fff9f0; {% elif ticket.flight.status == 'REFUNDED' %} background: #fff0f0; opacity: 0.9; {% endif %}">
+    <div class="ticket-left">
+        <h2>SkyLine</h2>
+        <span class="trip-tag">BOARDING PASS</span>
 
-            <div class="flight-path">
-                <div style="text-align:center">
-                    {% if "Delayed" in ticket.flight.status %}
-                        <strong style="text-decoration: line-through; color: #777; font-size: 0.8rem;">{{ ticket.flight.dep_time }}</strong><br>
-                        <strong style="color: #d35400;">{{ ticket.flight.status.split(': ')[1] }}</strong><br>
-                    {% else %}
-                        <strong>{{ ticket.flight.dep_time }}</strong><br>
-                    {% endif %}
-                    <small>{{ ticket.flight.from_city }}</small>
-                </div>
+        <!-- START: Round Trip Section -->
+        {% if ticket.flight.trip_type == 'round trip' %}
+        <div style="position: absolute; top: 45px; right: 20px; text-align: right;">
+            <h1 style="color: #d49f91; margin: 0; font-size: 1.5rem; letter-spacing: 2px;">ROUND TRIP</h1>
+            <small style="color: #666; font-weight: bold;">RETURN: {{ ticket.return_date }}</small>
+        </div>
+        {% endif %}
+        <!-- END: Round Trip Section -->
 
-                <div class="line"></div>
-                <div style="text-align:center">&#9992;</div>
-                <div class="line"></div>
-
-                <div style="text-align:center">
-                    <strong>{{ ticket.flight.to_city }}</strong><br>
-                    <small>{{ ticket.flight.to_country }}</small>
-                </div>
+        <div class="flight-path">
+            <div style="text-align:center">
+                {% if "Delayed" in ticket.flight.status %}
+                    <strong style="text-decoration: line-through; color: #777; font-size: 0.8rem;">{{ ticket.flight.dep_time }}</strong><br>
+                    <strong style="color: #d35400;">{{ ticket.flight.status.split(': ')[1] }}</strong><br>
+                {% else %}
+                    <strong>{{ ticket.flight.dep_time }}</strong><br>
+                {% endif %}
+                <small>{{ ticket.flight.from_city }}</small>
             </div>
 
-            <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <small style="text-transform: uppercase; font-size: 10px; color: #666;">Passenger</small><br>
-                    <strong>{{ ticket.first_name }} {{ ticket.last_name }}</strong>
-                </div>
-                <div>
-                    <small style="text-transform: uppercase; font-size: 10px; color: #666;">Seat</small><br>
-                    <strong>{{ ticket.seat_number }}</strong>
-                </div>
-            </div>
-            
-            <p style="margin-top: 15px; font-size: 13px;">
-                Date: {{ ticket.flight.dep_date }} | Class: {{ ticket.tier|capitalize }}
-                {% if ticket.flight.status == "REFUNDED" %}
-                    <span style="color: #e74c3c; font-weight: bold; margin-left: 10px;">(FLIGHT CANCELLED)</span>
-                {% endif %}
-            </p>
+            <div class="line"></div>
+            <div style="text-align:center">&#9992;</div>
+            <div class="line"></div>
 
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                {% if ticket.flight.status != "REFUNDED" %}
-                    <a href="{{ url_for('edit_ticket', booking_id=ticket.id) }}" 
-                    style="background: #6b9a9d; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 11px;">
-                    EDIT DETAILS
-                    </a>
-                {% endif %}
-                
-                <form action="{{ url_for('refund_ticket', booking_id=ticket.id) }}" method="POST" onsubmit="return confirm('Refund this ticket?');">
-                    <button type="submit" 
-                            style="background: #d49f91; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; font-size: 11px;">
-                        {% if ticket.flight.status == "REFUNDED" %} CLAIM REFUND {% else %} REFUND {% endif %}
-                    </button>
-                </form>
+            <div style="text-align:center">
+                <strong>{{ ticket.flight.to_city }}</strong><br>
+                <small>{{ ticket.flight.to_country }}</small>
             </div>
         </div>
 
-        <div class="ticket-right" style="{% if ticket.flight.status == 'REFUNDED' %} background: #d49f91; {% endif %}">
-            <div style="text-align: center;">
-                <small>REF NO.</small><br>
-                <strong>#SKY{{ ticket.id }}</strong>
+        <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div>
+                <small style="text-transform: uppercase; font-size: 10px; color: #666;">Passenger</small><br>
+                <strong>{{ ticket.first_name }} {{ ticket.last_name }}</strong>
             </div>
-            
+            <div>
+                <small style="text-transform: uppercase; font-size: 10px; color: #666;">Seat</small><br>
+                <strong>{{ ticket.seat_number }}</strong>
+            </div>
+            <!-- Added Random Gate Number -->
+            <div>
+                <small style="text-transform: uppercase; font-size: 10px; color: #666;">Gate</small><br>
+                <strong>{{ range(1, 25)|random }}{{ ['A', 'B', 'C']|random }}</strong>
+            </div>
+        </div>
+        
+        <p style="margin-top: 15px; font-size: 13px;">
+            Date: {{ ticket.flight.dep_date }} | Class: {{ ticket.tier|capitalize }}
             {% if ticket.flight.status == "REFUNDED" %}
-                <div style="font-weight: bold; color: #fff; background: #e74c3c; padding: 2px 10px; border-radius: 4px;">VOID</div>
-            {% else %}
-                <div style="font-weight: bold;">PAID</div>
+                <span style="color: #e74c3c; font-weight: bold; margin-left: 10px;">(FLIGHT CANCELLED)</span>
             {% endif %}
+        </p>
 
-            <div style="font-size: 14px;">PHP {{ "{:,.2f}".format(ticket.total_paid) }}</div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            {% if ticket.flight.status != "REFUNDED" %}
+                <a href="{{ url_for('edit_ticket', booking_id=ticket.id) }}" 
+                style="background: #6b9a9d; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 11px;">
+                EDIT DETAILS
+                </a>
+            {% endif %}
+            
+            <form action="{{ url_for('refund_ticket', booking_id=ticket.id) }}" method="POST" onsubmit="return confirm('Refund this ticket?');">
+                <button type="submit" 
+                        style="background: #d49f91; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; font-size: 11px;">
+                    {% if ticket.flight.status == "REFUNDED" %} CLAIM REFUND {% else %} REFUND {% endif %}
+                </button>
+            </form>
         </div>
     </div>
-{% else %}
-    <p style="color: white; text-align: center;">No tickets found. Start your journey today!</p>
-{% endfor %}
+
+    <div class="ticket-right" style="{% if ticket.flight.status == 'REFUNDED' %} background: #d49f91; {% endif %}">
+        <div style="text-align: center;">
+            <small>REF NO.</small><br>
+            <strong>#SKY{{ ticket.id }}</strong>
+        </div>
+        
+        {% if ticket.flight.status == "REFUNDED" %}
+            <div style="font-weight: bold; color: #fff; background: #e74c3c; padding: 2px 10px; border-radius: 4px;">VOID</div>
+        {% else %}
+            <div style="font-weight: bold;">PAID</div>
+        {% endif %}
+
+        <div style="font-size: 14px;">PHP {{ "{:,.2f}".format(ticket.total_paid) }}</div>
+    </div>
+</div>
+{% endfor %}           
+                    
+
+
         </div>
 </div>
 

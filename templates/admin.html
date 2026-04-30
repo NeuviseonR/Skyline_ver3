@@ -145,7 +145,7 @@
 
         <div class="admin-content">
 
-            <div id="timetable-section" class="admin-section active">
+            <div id="timetable-section" class="admin-section">
     <h2 style="font-size: 2rem; color: #004d4d;">Upcoming Flight Schedule (120 hours)</h2>
     <table style="width: 100%; border-collapse: collapse; background: rgba(234, 248, 239, 0.9); border-radius: 15px; overflow: hidden; box-shadow: 3px 3px 10px rgba(0, 60, 78, 0.5);">
         <thead>
@@ -239,10 +239,9 @@
                             </td>
                             <td>
                                 {% if flight.trip_type == 'round trip' %}
-                                    {{ flight.ret_date }} <br>
-                                    <small style="color: #666;">{{ flight.ret_time }}</small>
+                                    {{ flight.ret_date | format_json_dates }}
                                 {% else %}
-                                    <span style="color: #ccc;">—</span>
+                                    One Way
                                 {% endif %}
                             </td>
                             <td style="font-weight: bold; color: #004d4d;">

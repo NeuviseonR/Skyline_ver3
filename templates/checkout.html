@@ -135,6 +135,18 @@
             
             <div id="seat_map_container" class="seat-grid" style="display:none;"></div>
 
+            <!-- Inside <div class="step-content" id="step4"> -->
+            <div id="senior-benefits-list" style="display:none; background: #fff9e6; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="color: #856404; margin-top: 0;">✨ Senior Citizen Benefits Applied</h4>
+                <ul style="font-size: 0.9rem; color: #856404; padding-left: 20px;">
+                    <li><strong>20% Fare Discount:</strong> Applied to the base fare and cabin upgrades.</li>
+                    <li><strong>Priority Boarding:</strong> Early access to the cabin to settle in comfortably.</li>
+                    <li><strong>Flight Attendant Assistance:</strong> Dedicated help with stowing carry-on luggage.</li>
+                    <li><strong>Comfort Kit:</strong> Complimentary pillow and blanket provided upon request.</li>
+                    <li><strong>Wheelchair Assistance:</strong> Available at the gate (please notify crew upon arrival).</li>
+                </ul>
+            </div>
+
             <div style="text-align:right; margin-top:30px;">
                 <h3>Total: PHP <span id="final_total">0</span></h3>
                 <button type="button" class="pay-btn" onclick="openPayment()">PAY NOW</button>
@@ -220,59 +232,108 @@
     }
 
     function setupPassengerForms() {
-        const count = document.getElementById('p_count').value;
-        const nav = document.getElementById('p_tabs_nav');
-        const cont = document.getElementById('p_form_container');
-        nav.innerHTML = ''; cont.innerHTML = '';
+    const count = parseInt(document.getElementById('p_count').value) || 1;
+    const nav = document.getElementById('p_tabs_nav');
+    const cont = document.getElementById('p_form_container');
+    
+    // Check trip type from the Python-passed flight object[cite: 7]
+    const tripType = "{{ flight.trip_type }}";
+    let returnHtml = "";
 
-        for (let i = 1; i <= count; i++) {
-            let btn = document.createElement('button');
-            btn.type = "button";
-            btn.className = 'p-tab-btn' + (i===1 ? ' active' : '');
-            btn.innerText = `Pax ${i}`;
-            btn.onclick = () => {
-                // Update button colors
-                document.querySelectorAll('.p-tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Update form visibility
-                document.querySelectorAll('.p-form-unit').forEach(f => f.style.display = 'none');
-                document.getElementById(`pform_${i}`).style.display = 'block';
-            };
-            nav.appendChild(btn);
-
-            let div = document.createElement('div');
-            div.id = `pform_${i}`;
-            div.className = 'p-form-unit';
-            div.style.display = i === 1 ? 'block' : 'none';
-            div.innerHTML = `
-                <div class="form-row">
-                    <input type="text" name="first_name_${i}" placeholder="First Name" required>
-                    <input type="text" name="mi_${i}" placeholder="M.I." maxlength="1" style="width:60px;">
-                    <input type="text" name="last_name_${i}" placeholder="Last Name" required>
-                </div>
-                <div class="form-row">
-                    <input type="date" name="dob_${i}">
-                    <input type="text" name="nationality_${i}" placeholder="Nationality">
-                </div>
-                <div>
-                    <span style="display:inline-flex; height: fit-content;"> <p style="padding:0; width: 100px">Senior</p> <input type="checkbox" name="status_${i}" style="height: 20px; margin-top:18px;" value="Senior">
-                    <span style="display:inline-flex; height: fit-content;"> <p style="padding:0; width: 100px">Child</p> <input type="checkbox" name="status_${i}" style="height: 20px; margin-top:18px;" value="Child"> </span>
+    // Step 3 Requirement: Show return flight picker ONLY for round trips[cite: 6]
+    if (tripType === "round trip") {
+        try {
+            // Parse the JSON string stored in flight.ret_date[cite: 7]
+            const returnSchedules = JSON.parse('{{ flight.ret_date | safe }}');
+            
+            returnHtml = `
+                <div class="return-selection" style="background: #f4f7f6; padding: 20px; margin-bottom: 25px; border-radius: 10px; border: 1px solid var(--primary);">
+                    <h4 style="margin-top:0; color: var(--primary);">Pick Your Return Flight</h4>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 10px;">Please select one of the available return schedules:</p>
+                    <select name="selected_return" required style="width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #ccc;">
+                        <option value="">-- Choose Date & Time --</option>
+                        ${returnSchedules.map(sched => `
+                            <option value="${sched.date}|${sched.time}">${sched.date} at ${sched.time}</option>
+                        `).join('')}
+                    </select>
                 </div>
             `;
-            cont.appendChild(div);
+        } catch (e) {
+            console.error("Error parsing return schedules:", e);
+            returnHtml = `<p style="color:red;">Error loading return dates.</p>`;
         }
-        nextStep(3);
     }
 
+    // Reset containers[cite: 7]
+    nav.innerHTML = ''; 
+    cont.innerHTML = returnHtml; // Inject return picker (if any) at the top[cite: 6]
 
+    // Create Passenger Tabs and Forms[cite: 7]
+    for (let i = 1; i <= count; i++) {
+        // Create the Tab Button
+        let btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = 'p-tab-btn' + (i === 1 ? ' active' : '');
+        btn.innerText = `Passenger ${i}`;
+        btn.onclick = () => {
+            document.querySelectorAll('.p-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.p-form-unit').forEach(f => f.style.display = 'none');
+            document.getElementById(`pform_${i}`).style.display = 'block';
+        };
+        nav.appendChild(btn);
+
+        // Create the Form Unit
+        let div = document.createElement('div');
+        div.id = `pform_${i}`;
+        div.className = 'p-form-unit';
+        div.style.display = i === 1 ? 'block' : 'none';
+        div.innerHTML = `
+            <div class="form-row">
+                <input type="text" name="first_name_${i}" placeholder="First Name" required>
+                <input type="text" name="mi_${i}" placeholder="M.I." maxlength="1" style="width:60px;">
+                <input type="text" name="last_name_${i}" placeholder="Last Name" required>
+            </div>
+            <div class="form-row" style="margin-top: 15px;">
+                <div style="flex:1;">
+                    <label style="font-size: 0.8rem; color: #666;">Date of Birth</label>
+                    <input type="date" name="dob_${i}" required style="width:100%;">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size: 0.8rem; color: #666;">Nationality</label>
+                    <input type="text" name="nationality_${i}" placeholder="e.g. Filipino" required style="width:100%;">
+                </div>
+            </div>
+            <div class="status-selection" style="margin-top:20px; padding: 10px; background: #eee; border-radius: 5px;">
+                <label style="font-weight: bold; margin-right: 15px;">Passenger Type:</label>
+                <label><input type="radio" name="status_${i}" value="Adult" checked> Adult</label>
+                <label style="margin-left: 10px;"><input type="radio" name="status_${i}" value="Senior"> Senior</label>
+                <label style="margin-left: 10px;"><input type="radio" name="status_${i}" value="Child"> Child</label>
+            </div>
+        `;
+        cont.appendChild(div);
+    }
+    
+    nextStep(3); // Move to the Details view[cite: 7]
+}
 
     function toggleSeatMap(show) {
         seatAdd = show ? 300 : 0;
-        document.getElementById('seat_map_container').style.display = show ? 'grid' : 'none';
-        if(show) renderMap();
+        const container = document.getElementById('seat_map_container');
+        container.style.display = show ? 'grid' : 'none';
+        
+        if(show) {
+            renderMap();
+        } else {
+            // Clear selected seats so backend knows to trigger the random assigner
+            selectedSeats = [];
+            document.getElementById('hidden_seat').value = "";
+        }
         updateTotal();
     }
+
+
+
 
     let selectedSeats = [];
 
@@ -310,14 +371,16 @@
     let s = document.createElement('div');
     s.className = 'seat';
     
-    // Add class prefix: 'e' for economy, 'b' for business, 'f' for first
-    const tierPrefix = currentTier.charAt(0).toLowerCase(); 
-    let name = tierPrefix + r + c; 
     
-    s.innerText = name;
+    let seatId = r + c;
+    
+    // STEP 4 FIX: Remove letters before the number for the grid display
+    s.innerText = `${r}${c}`; // Display label: e.g., '1A'
 
-    // Check if this specific class-seat is taken
-    if (occupiedSeats.includes(name)) {
+    // TIER CHECK FIX: Reference the specific tier array from the dictionary[cite: 8]
+    const occupiedInCurrentTier = occupiedSeats[currentTier] || [];
+
+    if (occupiedInCurrentTier.includes(seatId)) {
         s.classList.add('occupied');
     }
 
@@ -331,17 +394,16 @@
 
         if (this.classList.contains('selected')) {
             this.classList.remove('selected');
-            selectedSeats = selectedSeats.filter(item => item !== name);
+            selectedSeats = selectedSeats.filter(item => item !== seatId);
         } else {
             if (selectedSeats.length < maxSeats) {
                 this.classList.add('selected');
-                selectedSeats.push(name);
+                selectedSeats.push(seatId);
             } else {
                 alert(`You can only select ${maxSeats} seats.`);
             }
         }
 
-        // Update hidden input with prefixed names
         document.getElementById('hidden_seat').value = selectedSeats.join(',');
         document.getElementById('seat_counter_msg').innerText = 
             `Selected: ${selectedSeats.length}/${maxSeats}`;
@@ -350,15 +412,40 @@
 }
 
 
-
     function updateTotal() {
     let count = parseInt(document.getElementById('p_count').value) || 1;
-    // seatAdd is only applied once per passenger if they chose Preferred
-    let total = (basePrice + tierAdd + seatAdd) * count;
-    document.getElementById('final_total').innerText = total.toLocaleString();
-    document.getElementById('hidden_total').value = total;
+    let grandTotal = 0;
+    let basePerPerson = basePrice + tierAdd + seatAdd;
+    let seniorBenefitsDiv = document.getElementById('senior-benefits-list');
+    let hasSenior = false;
+
+    for (let i = 1; i <= count; i++) {
+        let passengerTotal = basePerPerson;
+        
+        // Check if Senior is selected for this passenger
+        let statusElements = document.getElementsByName(`status_${i}`);
+        let selectedStatus = "";
+        
+        statusElements.forEach(radio => {
+            if (radio.checked) selectedStatus = radio.value;
+        });
+
+        if (selectedStatus === "Senior") {
+            passengerTotal = basePerPerson * 0.80; // 20% Discount
+            hasSenior = true;
+        }
+        
+        grandTotal += passengerTotal;
     }
 
+    // Show/Hide benefits list based on whether a senior is present
+    if (seniorBenefitsDiv) {
+        seniorBenefitsDiv.style.display = hasSenior ? 'block' : 'none';
+    }
+
+    document.getElementById('final_total').innerText = grandTotal.toLocaleString();
+    document.getElementById('hidden_total').value = grandTotal;
+}
     function openPayment() { document.getElementById('payment_modal').style.display = 'flex'; }
     function closePayment() { document.getElementById('payment_modal').style.display = 'none'; }
     function togglePayFields() {
@@ -366,6 +453,51 @@
         document.getElementById('card_fields').style.display = m === 'card' ? 'block' : 'none';
         document.getElementById('paypal_fields').style.display = m === 'paypal' ? 'block' : 'none';
     }
+
+    // Add this inside your <script> tag in checkout.html
+window.onload = function() {
+    const restored = {{ restored_data|tojson|safe if restored_data else 'null' }};
+    
+    if (restored) {
+        // 1. Restore Tier
+        if (restored.tier) {
+            // Find the tier box and click it to trigger styles/logic
+            const tierBox = document.querySelector(`.tier-box[onclick*="${restored.tier}"]`);
+            if (tierBox) tierBox.click();
+        }
+
+        // 2. Restore Passenger Count and trigger form generation
+        if (restored.p_count) {
+            document.getElementById('p_count').value = restored.p_count;
+            setupPassengerForms(); // This generates the inputs
+            
+            // 3. Fill in the generated inputs
+            setTimeout(() => {
+                for (let i = 1; i <= restored.p_count; i++) {
+                    document.querySelector(`[name="first_name_${i}"]`).value = restored[`first_name_${i}`] || '';
+                    document.querySelector(`[name="last_name_${i}"]`).value = restored[`last_name_${i}`] || '';
+                    document.querySelector(`[name="dob_${i}"]`).value = restored[`dob_${i}`] || '';
+                    document.querySelector(`[name="nationality_${i}"]`).value = restored[`nationality_${i}`] || '';
+                    
+                    // Restore Status (Adult/Senior/Child)
+                    const statusVal = restored[`status_${i}`];
+                    if (statusVal) {
+                        const radio = document.querySelector(`[name="status_${i}"][value="${statusVal}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                }
+                
+                // If round trip, restore return selection
+                if (restored.selected_return) {
+                    document.querySelector('[name="selected_return"]').value = restored.selected_return;
+                }
+                
+                // Move the user to Step 3 so they see their data is back
+                nextStep(3);
+            }, 100); 
+        }
+    }
+};
 </script>
 </body>
 </html>

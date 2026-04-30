@@ -28,7 +28,7 @@
             <p>Nationality</p>
             <input type="text" name="nationality" value="{{ booking.nationality }}"><br><br>
 
-            {% if booking.seat_number != "Auto-Assigned" %}
+            {% if booking.seat_status != "AUTO-ASSIGNED" %}
                 <hr>
                 <h3>Change Your Seat</h3>
                 <p>Current Seat: <strong>{{ booking.seat_number }}</strong></p>

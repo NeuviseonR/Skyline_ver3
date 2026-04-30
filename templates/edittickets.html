@@ -5,8 +5,41 @@
     <title>SkyLine Admin | Edit Flight</title> 
     <link rel="stylesheet" href="{{ url_for('static', filename='adminstyle.css') }}">
     
+    <style>
+        .schedule-bubble {
+            background: #478294;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        .remove-bubble {
+            cursor: pointer;
+            font-weight: bold;
+            color: #ffcccc;
+        }
+    </style>
+
     <script>
-        const cityData = {{ city_data_json | safe if city_data_json else '{}' }}; // Usually passed from Flask, or keep your hardcoded object here
+        const cityData = {{ city_data_json | safe if city_data_json else '{}' }};
+        let schedules = [];
+
+        // Load existing schedules from the database on page load
+        window.onload = function() {
+            toggleReturn();
+            const existingData = '{{ flight.ret_date | safe }}';
+            if (existingData && existingData !== 'none') {
+                try {
+                    schedules = JSON.parse(existingData);
+                    renderBubbles();
+                } catch (e) {
+                    console.error("Error parsing existing schedules", e);
+                }
+            }
+        };
 
         function updateCities(countryId, cityId) {
             const countrySelect = document.getElementById(countryId);
@@ -30,18 +63,62 @@
                 returnSection.style.display = (tripType === 'round trip') ? 'block' : 'none';
             }
         }
-        window.onload = toggleReturn;
+
+        // Multiple Date Logic
+        function addSchedule() {
+            const dateInput = document.getElementById('temp_ret_date');
+            const timeInput = document.getElementById('temp_ret_time');
+            
+            if (!dateInput.value || !timeInput.value) {
+                alert("Please select both date and time");
+                return;
+            }
+
+            const entry = {
+                date: dateInput.value,
+                time: timeInput.value,
+                id: Date.now()
+            };
+
+            schedules.push(entry);
+            renderBubbles();
+            dateInput.value = "";
+            timeInput.value = "";
+        }
+
+        function removeSchedule(id) {
+            schedules = schedules.filter(s => s.id !== id);
+            renderBubbles();
+        }
+
+        function renderBubbles() {
+            const container = document.getElementById('schedule_bubbles');
+            const hiddenInput = document.getElementById('return_schedules_data');
+            
+            container.innerHTML = "";
+            schedules.forEach(s => {
+                const bubble = document.createElement('div');
+                bubble.className = 'schedule-bubble';
+                bubble.innerHTML = `
+                    ${s.date} @ ${s.time}
+                    <span class="remove-bubble" onclick="removeSchedule(${s.id})">×</span>
+                `;
+                container.appendChild(bubble);
+            });
+            hiddenInput.value = JSON.stringify(schedules);
+        }
     </script>
 </head>
 <body style="height: fit-content;">
 
 <div class="allbody" style="display: flex; background-color: #6b9a9d; justify-content: center; align-items: center; min-height: 80vh;">
-    <div style="width: 100%; height: 900px; position: relative; display: flex; justify-content: center;">
+    <div style="width: 100%; height: auto; position: relative; display: flex; justify-content: center; padding: 50px 0;">
         
-        <div class="admin-form-container" style="margin: 95px auto 40px auto;">
+        <div class="admin-form-container">
             <form action="{{ url_for('edittickets', flight_id=flight.id) }}" method="POST">
                 <h2 style="color: #004d4d; margin-bottom: 20px;">Update Flight Ticket #{{ flight.id }}</h2>
 
+                <!-- Trip Type Toggle -->
                 <div class="promo-section" style="margin-bottom: 20px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px;">
                     <h3 style="margin-top: 0;">Flight Type</h3>
                     <div style="display: flex; gap: 20px;">
@@ -50,6 +127,7 @@
                     </div>
                 </div>
 
+                <!-- Locations -->
                 <div class="form-row">
                     <div class="form-group">  
                         <label>From Country</label>
@@ -68,22 +146,24 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>To Country</label>
-                        <select id="to_country" name="to_country" onchange="updateCities('to_country', 'to_city')" required>
-                            {% for country in countries %}
-                            <option value="{{ country }}" {% if flight.to_country == country %}selected{% endif %}>{{ country }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="form-group">
+                            <label>To Country</label>
+                            <select id="to_country" name="to_country" onchange="updateCities('to_country', 'to_city')" required>
+                                <option value="">Select Country</option>
+                                {% for country in countries %}
+                                <option value="{{ country }}" {% if flight.to_country == country %}selected{% endif %}>{{ country }}</option>
+                                 {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>To City</label>
+                            <select id="to_city" name="to_city" required>
+                                <option value="{{ flight.to_city}}">{{ flight.to_city }}</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>To City</label>
-                        <select id="to_city" name="to_city" required>
-                            <option value="{{ flight.to_city }}">{{ flight.to_city }}</option>
-                        </select>
-                    </div>
-                </div>
 
+                <!-- Departure Schedule -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Departure Date</label>
@@ -95,41 +175,48 @@
                     </div>
                 </div>
 
+                <!-- DYNAMIC RETURN SECTION -->
                 <div id="return-section" style="display: {{ 'block' if flight.trip_type == 'round trip' else 'none' }}; margin-bottom: 20px;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Return Date</label>
-                            <input type="date" name="ret_date" value="{{ flight.ret_date if flight.ret_date != 'none' else '' }}">
+                    <div style="background: rgba(255,255,255,0.3); padding: 15px; border-radius: 8px;">
+                        <label><strong>Add Return Schedules</strong></label>
+                        <div style="display: flex; gap: 10px; margin-top: 5px;">
+                            <input type="date" id="temp_ret_date" class="form-control">
+                            <input type="time" id="temp_ret_time" class="form-control">
+                            <button type="button" onclick="addSchedule()" style="padding: 5px 15px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">+ Add</button>
                         </div>
-                        <div class="form-group">
-                            <label>Return Time</label>
-                            <input type="time" name="ret_time" value="{{ flight.ret_time if flight.ret_time != 'none' else '' }}">
+                        
+                        <div id="schedule_bubbles" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+                            <!-- Bubbles injected by JS -->
                         </div>
+                        
+                        <!-- Hidden input to send JSON data to app.py -->
+                        <input type="hidden" name="ret_date" id="return_schedules_data" value="{{ flight.ret_date }}">
                     </div>
                 </div>
 
+                <!-- Tickets and Pricing -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Economy Tickets</label>
+                        <label>Economy</label>
                         <input type="number" name="tickets_economy" value="{{ flight.tickets_economy }}" min="0" required>
                     </div>
                     <div class="form-group">
-                        <label>Business Tickets</label>
+                        <label>Business</label>
                         <input type="number" name="tickets_business" value="{{ flight.tickets_business }}" min="0" required>
                     </div>
                     <div class="form-group">
-                        <label>First Class Tickets</label>
+                        <label>First Class</label>
                         <input type="number" name="tickets_first" value="{{ flight.tickets_first }}" min="0" required>
                     </div>
                     <div class="form-group">
-                        <label>Base Price (PHP)</label>
+                        <label>Price (PHP)</label>
                         <input type="number" step="0.01" name="price" value="{{ flight.price }}" required>
                     </div>
                 </div>
 
-                <div class="form-row" style="margin-top: 20px; display: flex; flex-direction:column; gap: 15px; align-items: stretch; align-items: center;">
-                    <button type="submit" class="submit-btn" style="flex: 2; margin: 0; height: 50px;">UPDATE FLIGHT TICKET</button>
-                    <a href="{{ url_for('admin_dashboard') }}" class="submit-btn" style="width: fit-content; flex: 1; background: #666; text-align: center; text-decoration: none; height: fit-content; display: block; margin: 0;">CANCEL</a>
+                <div class="form-row" style="margin-top: 20px; display: flex; flex-direction:column; gap: 15px; align-items: center;">
+                    <button type="submit" class="submit-btn" style="width: 100%; height: 50px;">UPDATE FLIGHT TICKET</button>
+                    <a href="{{ url_for('admin_dashboard') }}" class="submit-btn" style="width: 100%; background: #666; text-align: center; text-decoration: none; padding-top: 12px;">CANCEL</a>
                 </div>
             </form>
         </div>

@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 import datetime
+import json
+import random
 
 app = Flask(__name__)
 app.secret_key = "skyline_super_secret"
@@ -55,8 +57,8 @@ class Flight(db.Model):
     to_city = db.Column(db.String(50), nullable=False)
     dep_date = db.Column(db.String(20), nullable=False)
     dep_time = db.Column(db.String(20), nullable=False)
-    ret_date = db.Column(db.String(20), nullable=False)
-    ret_time = db.Column(db.String(20), nullable=False)
+    ret_date = db.Column(db.Text, nullable=False) 
+    ret_time = db.Column(db.String(100), nullable=False)
     duration = db.Column(db.String(20), nullable=False)
     tickets_economy = db.Column(db.Integer)
     tickets_business = db.Column(db.Integer)
@@ -84,9 +86,9 @@ class Booking(db.Model):
     tier = db.Column(db.String(20)) # Economy, Business, First
     seat_number = db.Column(db.String(10))
     total_paid = db.Column(db.Float)
-    payment_method = db.Column(db.String(20))
-    # Inventory Tracking
-    seats_remaining_after = db.Column(db.Integer) 
+    return_date = db.Column(db.String(50))
+    return_time = db.Column(db.String(50))
+    seat_status = db.Column(db.String(20))
 
 class Destination(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -105,9 +107,23 @@ class ContactMessage(db.Model):
     message = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.now)   
 # Run db.create_all() after adding this
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+
+@app.template_filter('format_json_dates')
+def format_json_dates(json_str):
+    if not json_str or json_str == "none" or json_str == "[]":
+        return "N/A"
+    try:
+        data = json.loads(json_str)
+        # Combine date and time for each entry and join them with a break or comma
+        return ", ".join([f"{item['date']} ({item['time']})" for item in data])
+    except:
+        return json_str # Fallback to raw string if it's not JSON
 
 @app.after_request
 def add_header(response):
@@ -119,40 +135,47 @@ def add_header(response):
 
 @app.route('/booking')
 def booking():
-    # --- START: NEW TIMETABLE LOGIC ---
-    # Get the current time and calculate the cutoff (10 hours from now)
+
+    # --- START: UPDATED TIMETABLE LOGIC (24-Hour Unique Window) ---
     now = datetime.datetime.now()
-    ten_hours_later = now + timedelta(hours=24)
-    
-    # Format today's date to match the string format in your database (YYYY-MM-DD)
+    twenty_four_hours_later = now + timedelta(hours=24)
     current_date_str = now.strftime('%Y-%m-%d')
     
-    # Query all flights for today first
-    today_flights = Flight.query.filter(Flight.dep_date == current_date_str).all()
+    # Query flights from today onwards to capture the 24-hour window[cite: 5]
+    upcoming_flights = Flight.query.filter(Flight.dep_date >= current_date_str).all()
     
-    timetable_flights = []
-    for f in today_flights:
+    # Use a dictionary to ensure only one entry per unique time/destination combo[cite: 5]
+    unique_timetable = {}
+
+    for f in upcoming_flights:
         try:
-            # Combine the date and time strings into a single datetime object for comparison
+            # Combine date and time to create a datetime object for comparison[cite: 5]
             dep_time_obj = datetime.datetime.strptime(f"{f.dep_date} {f.dep_time}", "%Y-%m-%d %H:%M")
             
-            # Check if the flight departs between "now" and "10 hours from now"
-            if now <= dep_time_obj <= ten_hours_later:
-                timetable_flights.append(f)
+            # Check if flight is within the next 24 hours[cite: 5]
+            if now <= dep_time_obj <= twenty_four_hours_later:
+                # Key prevents duplicate schedules for the same city from appearing[cite: 5]
+                key = f"{f.dep_date}_{f.dep_time}_{f.to_city}"
+                
+                if key not in unique_timetable:
+                    unique_timetable[key] = f
         except ValueError:
             continue
     
-    # Sort the timetable strictly by departure time
+    # Convert back to list and sort by departure time for the table[cite: 5]
+    timetable_flights = list(unique_timetable.values())
     timetable_flights.sort(key=lambda x: x.dep_time)
-    # --- END: NEW TIMETABLE LOGIC ---
+    # --- END: TIMETABLE LOGIC ---
 
-    # --- START: EXISTING SEARCH FILTERS (DO NOT REMOVE) ---
+    # --- START: EXISTING SEARCH FILTERS ---
     query = Flight.query
 
+    # Filter by Trip Type (One Way / Round Trip)[cite: 5]
     trip_type = request.args.get('trip_type')
     if trip_type:
         query = query.filter(Flight.trip_type == trip_type)
 
+    # Filter by Seat Class availability[cite: 5]
     seat_class = request.args.get('seat_class')
     if seat_class == 'economy':
         query = query.filter(Flight.tickets_economy > 0)
@@ -161,6 +184,7 @@ def booking():
     elif seat_class == 'first':
         query = query.filter(Flight.tickets_first > 0)
 
+    # Filter by City[cite: 5]
     from_city = request.args.get('from_city')
     if from_city:
         query = query.filter(Flight.from_city.contains(from_city))
@@ -169,40 +193,58 @@ def booking():
     if to_city:
         query = query.filter(Flight.to_city.contains(to_city))
 
+    # Filter by Date[cite: 5]
     dep_date = request.args.get('dep_date')
     if dep_date:
         query = query.filter(Flight.dep_date == dep_date)
 
+    # Promo Filter[cite: 5]
     if request.args.get('has_promo') == 'yes':
         query = query.filter(Flight.promo_code != 'none', Flight.promo_code != '')
 
+    # Sorting Logic[cite: 5]
     sort_by = request.args.get('sort_by', 'dep_date')
     if sort_by == 'price':
         query = query.order_by(Flight.price.asc())
     else:
         query = query.order_by(Flight.dep_date.asc())
 
+    # Final list of flights for the booking cards[cite: 5]
     flights = query.all()
-    # --- END: EXISTING SEARCH FILTERS ---
+    # --- END: SEARCH FILTERS ---
 
-    # Return both the search results (flights) and the timetable results
+    # Render the page with both the filtered results and the 24h timetable
     return render_template('booking.html', 
                            flights=flights, 
                            timetable=timetable_flights, 
                            calc_arrival=calculate_arrival)
 
+
 @app.route('/checkout/<int:flight_id>', methods=['GET', 'POST'])
 def checkout(flight_id):
     flight = Flight.query.get_or_404(flight_id)
     
-    # Fetch seats that are NOT "Auto-Assigned" for this specific flight
-    occupied = [b.seat_number for b in Booking.query.filter_by(flight_id=flight_id).all() 
-                if b.seat_number and b.seat_number != "Auto-Assigned"]
+    # 1. Validation Logic: Only restore data if it belongs to this specific flight
+    # This prevents data from a previous search/booking from leaking into a new one
+    saved_data = None
+    if session.get('pending_flight_id') == flight_id:
+        saved_data = session.get('pending_booking')
     
+    # 2. Get all existing bookings for this flight to handle seat occupancy
+    all_bookings = Booking.query.filter_by(flight_id=flight_id).all()
+    
+    # 3. Categorize occupied seats by tier for the frontend map
+    occupied_by_tier = {
+        'first': [b.seat_number for b in all_bookings if b.tier == 'first'],
+        'business': [b.seat_number for b in all_bookings if b.tier == 'business'],
+        'economy': [b.seat_number for b in all_bookings if b.tier == 'economy']
+    }
+
     return render_template('checkout.html', 
                            flight=flight, 
                            calc_arrival=calculate_arrival,
-                           occupied_seats=occupied) # Pass the list here
+                           occupied_seats=occupied_by_tier,
+                           restored_data=saved_data) # Data is null if IDs don't match[cite: 3]
 
 @app.route('/book_flight/<int:flight_id>')
 def book_flight(flight_id):
@@ -239,27 +281,29 @@ def popular():
 
 # In app.py
 def calculate_arrival(start_time_str, duration_str):
-    # Check if data is missing or set to "none"
     if not start_time_str or start_time_str == "none" or not duration_str:
         return "--:--"
     
     try:
-        # 1. Parse the starting time (e.g., "14:30")
         start_time = datetime.datetime.strptime(start_time_str, "%H:%M")
         
-        # 2. Extract hours and minutes from duration "12h 30m"
-        # We use .replace and .strip to ensure the strings are clean
-        clean_duration = duration_str.lower()
-        hours = int(clean_duration.split('h')[0].strip())
-        minutes = 0
-        if 'm' in clean_duration:
-            minutes = int(clean_duration.split('h')[1].split('m')[0].strip())
+        # Clean the string: remove 'hrs', 'h', 'm' and extra spaces
+        clean_duration = duration_str.lower().replace('hrs', 'h').strip()
+        
+        # Logic to handle just numbers (e.g., "12") or "12h 30m"
+        if 'h' in clean_duration:
+            hours = int(clean_duration.split('h')[0].strip())
+            minutes = 0
+            if 'm' in clean_duration:
+                minutes = int(clean_duration.split('h')[1].split('m')[0].strip())
+        else:
+            # If it's just a raw number like "12", assume it's hours
+            hours = int(clean_duration)
+            minutes = 0
             
-        # 3. Add duration to start time
         arrival_time = start_time + timedelta(hours=hours, minutes=minutes)
         return arrival_time.strftime("%H:%M")
     except (ValueError, IndexError):
-        # If the user typed the duration wrong (like "12 hours"), return a placeholder
         return "--:--"
 
 @app.route('/edittickets/<int:flight_id>', methods=['GET', 'POST'])
@@ -268,24 +312,27 @@ def edittickets(flight_id):
 
     if request.method == 'POST':
         try:
-            # 1. Update Route and Trip Type
+            # 1. Update Basic Route Info
             flight.trip_type = request.form.get('trip_type')
             flight.from_country = request.form.get('from_country')
             flight.from_city = request.form.get('from_city')
             flight.to_country = request.form.get('to_country')
             flight.to_city = request.form.get('to_city')
             
-            # 2. Update Schedule
+            # 2. Update Departure Schedule
             flight.dep_date = request.form.get('dep_date')
             flight.dep_time = request.form.get('dep_time')
             
-            # 3. Handle Return Info: If one-way, force "none" to prevent DB errors
+            # 3. Handle Dynamic Bubbles
             if flight.trip_type == "one way trip":
                 flight.ret_date = "none"
                 flight.ret_time = "none"
             else:
-                flight.ret_date = request.form.get('ret_date') or "none"
-                flight.ret_time = request.form.get('ret_time') or "none"
+                # Get JSON data from the hidden input field 'ret_date' in edittickets.html
+                # If no bubbles are left, it stores an empty list '[]'
+                bubble_data = request.form.get('ret_date')
+                flight.ret_date = bubble_data if bubble_data else "[]"
+                flight.ret_time = "multiple"
             
             # 4. Update Inventory and Pricing
             flight.tickets_economy = int(request.form.get('tickets_economy') or 0)
@@ -293,15 +340,20 @@ def edittickets(flight_id):
             flight.tickets_first = int(request.form.get('tickets_first') or 0)
             flight.price = float(request.form.get('price') or 0)
             
+            # If all return dates are removed, you might want to set status to CANCELLED 
+            # like your existing cancellation logic
+            if flight.trip_type == "round trip" and (not flight.ret_date or flight.ret_date == "[]"):
+                flight.status = "CANCELLED"[cite: 2]
+            
             db.session.commit()
             flash("Flight Updated Successfully!")
             return redirect(url_for('admin_dashboard'))
+            
         except Exception as e:
             db.session.rollback()
             print(f"Update Error: {e}")
             return f"Error: {e}"
 
-    # Pass the COUNTRIES_LIST so the dropdowns have options to show
     return render_template('edittickets.html', flight=flight, countries=COUNTRIES_LIST)
 
 @app.route('/addpromos')
@@ -345,42 +397,39 @@ def logs():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        
+        # 1. Fetch user from database
         user = User.query.filter_by(email=email).first()
 
-        # Check if the account exists at all
-        if not user:
-            flash("No account exists with this email. Please sign up!", "error")
-            return redirect(url_for('login'))
-        
+        # 2. Verify existence and password hash
         if user and check_password_hash(user.password, password):
-            # Log In with the specific ID
+            # Log the user in by storing their ID and name in the session
             session['user_id'] = user.id
-            session['role'] = user.role
             session['first_name'] = user.first_name
-            session['email'] = user.email
+            session['role'] = user.role
+            session['is_admin'] = user.role == "admin"
             
-            if session['role'] == "admin":
-                return redirect(url_for('admin_dashboard'))
-            
-            if session['role'] == "banned":
-                flash("This account has been banned", "error")
-                return redirect(url_for('login'))
-            
-            else:
-                # Success Message
-                flash(f"Welcome back, {user.first_name}!")  
-                
-                # 3. Send to home page
-                return redirect(url_for('index'))
-        
-        # If login fails
-        flash("Invalid email or password.")
-        return redirect(url_for('login'))
+            flash(f"Welcome back, {user.first_name}!", "success")
 
+            # 3. SMART REDIRECT: Check for pending booking data
+            # If the user was redirected here from a failed 'Pay Now' click, 
+            # we send them straight back to the flight they were booking.
+            if 'pending_booking' in session:
+                flight_id = session.get('pending_flight_id')
+                # We don't clear the pending_booking yet; we do that in the checkout route
+                return redirect(url_for('checkout', flight_id=flight_id))
+            
+            # Default redirect for normal logins
+            return redirect(url_for('index'))
+        
+        else:
+            flash("Invalid email or password. Please try again.", "error")
+            return redirect(url_for('login'))
+
+    # Display the login page for GET requests
     return render_template('login.html')
 
 #New Code Added (log out)
@@ -490,11 +539,15 @@ def addtickets():
 
 @app.route('/addticketsround', methods=['GET', 'POST'])
 def addticketsround():
+
     if request.method == 'POST':
         raw_price = float(request.form.get('price', 0))
         final_price = raw_price * 2
         trip_type_value = "round trip"
-        # 3. Create the Flight Object
+        
+        # Get the JSON string of multiple dates/times from the hidden input
+        return_schedules = request.form.get('return_schedules_data') 
+        
         new_flight = Flight(
             from_country=request.form.get('from_country'),
             from_city=request.form.get('from_city'),
@@ -502,28 +555,25 @@ def addticketsround():
             to_city=request.form.get('to_city'),
             dep_date=request.form.get('dep_date'),
             dep_time=request.form.get('dep_time'),
-            ret_date=request.form.get('ret_date'),
-            ret_time=request.form.get('ret_time'),
+            # Store the multiple schedules as a string in the existing ret_date column
+            ret_date=return_schedules, 
+            ret_time="multiple", # Marker for logic
             duration=request.form.get('duration'),
             tickets_economy=request.form.get('tickets_economy'),
             tickets_business=request.form.get('tickets_business'),
             tickets_first=request.form.get('tickets_first'),
-            
-            # Use our new calculated values
             trip_type=trip_type_value, 
             price=final_price,
-            
-            promo_code=request.form.get('promo_code')
+            promo_code=request.form.get('promo_code'),
+            status="active"
         )
         
         db.session.add(new_flight)
         db.session.commit()
-        # Use redirect so you can see the new flight in the dashboard immediately
-        flash("Round-Trip Flight Added Successfully!")
+        flash("Round-Trip Flight with Multiple Returns Added!")
         return redirect(url_for('admin_dashboard'))
 
     return render_template('addticketsround.html', countries=COUNTRIES_LIST)
-
 @app.route('/delete_flight/<int:flight_id>', methods=['POST'])
 def delete_flight(flight_id):
     flight = Flight.query.get_or_404(flight_id)
@@ -587,24 +637,72 @@ def admin_dashboard():
 
 @app.route('/process_booking/<int:flight_id>', methods=['POST'])
 def process_booking(flight_id):
+    if 'user_id' not in session:
+        # Save the form data so they don't lose it
+        session['pending_booking'] = request.form.to_dict()
+        session['pending_flight_id'] = flight_id
+        flash("Please log in to complete your booking. Your details have been saved!", "info")
+        return redirect(url_for('login'))
+
+    # If logged in, proceed with the existing logic
+    u_id = session.get('user_id')
     flight = Flight.query.get_or_404(flight_id)
     
+    # Get Return Selection if Round Trip
+    ret_selection = request.form.get('selected_return') # Format: "YYYY-MM-DD|HH:MM"
+    ret_date, ret_time = (None, None)
+    if ret_selection:
+        ret_date, ret_time = ret_selection.split('|')
+
     try:
         p_count = int(request.form.get('p_count', 1))
         tier = request.form.get('tier', 'economy')
         total_amount = float(request.form.get('total_amount', '0').replace(',', ''))
-        
         selected_seats_str = request.form.get('selected_seat', "")
+        
+        # Parse selected seats into a list
         seats_list = [s.strip() for s in selected_seats_str.split(',') if s.strip()]
 
-        last_booking_created = None
+        if seats_list:
+            seat_stat = "CHOSEN"
+        # --- RANDOM SEAT ALLOCATION LOGIC ---
+        # If no seats were manually selected, find available ones in the grid
+        if not seats_list:
+            import random
+            
+            # 1. Define grid dimensions based on tier
+            rows = 5 if tier == 'first' else (10 if tier == 'business' else 20)
+            side_seats = 1 if tier == 'first' else (2 if tier == 'business' else 3)
+            letters = "ABCDEF"[:side_seats * 2]
+
+            # 2. Generate every possible seat ID for this tier (e.g., e1A, e1B...)
+            all_possible_seats = [f"{r}{l}" for r in range(1, rows + 1) for l in letters]
+
+            # 3. Get currently occupied seats for this flight and tier
+            occupied = [b.seat_number for b in Booking.query.filter_by(flight_id=flight_id, tier=tier).all()]
+            
+            # 4. Filter for empty seats and shuffle
+            available_seats = [s for s in all_possible_seats if s not in occupied]
+            random.shuffle(available_seats)
+            
+            # 5. Take the first N available seats needed for the group
+            seats_list = available_seats[:p_count]
+            seat_stat = "AUTO-ASSIGNED"
 
         for i in range(1, p_count + 1):
-            if tier == 'economy': flight.tickets_economy -= 1
-            elif tier == 'business': flight.tickets_business -= 1
-            elif tier == 'first': flight.tickets_first -= 1
+            # Update Flight Inventory
+            if tier == 'economy': 
+                flight.tickets_economy -= 1
+            elif tier == 'business': 
+                flight.tickets_business -= 1
+            elif tier == 'first': 
+                flight.tickets_first -= 1
 
-            current_seat = seats_list[i-1] if i <= len(seats_list) else "Auto-Assigned"
+            # Assign from our verified seats_list (no more "Auto-Assigned" string)
+            # If for some reason available_seats was empty, fallback to "N/A"
+            current_seat = seats_list[i-1] if i <= len(seats_list) else "N/A"
+
+                
 
             new_booking = Booking(
                 user_id=session.get('user_id'),
@@ -614,27 +712,29 @@ def process_booking(flight_id):
                 last_name=request.form.get(f'last_name_{i}'),
                 dob=request.form.get(f'dob_{i}'),
                 nationality=request.form.get(f'nationality_{i}'),
+                status=request.form.get(f'status_{i}'),
                 tier=tier,
-                seat_number=current_seat,
-                total_paid=total_amount / p_count
+                seat_number= current_seat,
+                total_paid=total_amount / p_count,
+                return_date=ret_date,
+                return_time=ret_time,
+                seat_status = seat_stat
             )
             db.session.add(new_booking)
-            last_booking_created = new_booking # Keep track of the last one to send email
 
         db.session.commit()
 
-        # Trigger the Email after successful commit
-        user_email = session.get('email')
-        if user_email and last_booking_created:
-            send_receipt_email(user_email, last_booking_created)
+        # Clear pending data after success
+        session.pop('pending_booking', None)
+        session.pop('pending_flight_id', None)
 
         return redirect(url_for('success'))
 
     except Exception as e:
         db.session.rollback()
-        flash("An error occurred during booking.")
-        return redirect(url_for('checkout', flight_id=flight.id))
-
+        # Log the error to console for debugging
+        print(f"Booking Error: {e}")
+        return f"Error: {e}"
 @app.route('/edit-ticket/<int:booking_id>', methods=['GET', 'POST'])
 def edit_ticket(booking_id):
     booking = Booking.query.get_or_404(booking_id)
